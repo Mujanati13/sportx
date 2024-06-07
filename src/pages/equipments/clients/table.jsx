@@ -154,9 +154,9 @@ const TableClient = () => {
         const response = await fetch(
           "https://fithouse.pythonanywhere.com/api/clients/",
           {
-            // headers: {
-            //   "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
-            // },
+            headers: {
+              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+            },
           }
         );
         const jsonData = await response.json();

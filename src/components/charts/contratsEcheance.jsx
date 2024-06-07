@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Button, Divider, Segmented, Tooltip, Modal,Popover } from "antd";
+import { Button, Divider, Segmented, Tooltip, Modal, Popover } from "antd";
 import {
   ExclamationCircleOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
 
-function ContratsEcheance() {
+const ContratsEcheance = () => {
   const [expiringContracts, setExpiringContracts] = useState({});
   const [soonExpiringContracts, setSoonExpiringContracts] = useState({});
   const [displayExpired, setDisplayExpired] = useState(true);
@@ -166,6 +166,7 @@ function ContratsEcheance() {
       </Modal>
     </div>
   );
-}
+};
 
-export default ContratsEcheance;
+
+export default ContratsEcheance

@@ -2,12 +2,12 @@ import { Button } from "antd";
 import { ContainerOutlined } from "@ant-design/icons";
 import React from "react";
 import TypeContart from "../../../components/charts/typeContart";
-import ContratsEcheance from "../../../components/charts/ContratsEcheance";
 import Teresorerie from "../../../components/charts/teresorerie";
 import Client from "../../../components/charts/client";
 import Reservations from "../../../components/charts/reservations";
 import Birthday from "../../../components/charts/birthday";
 import DemoDualAxes from "../../../components/charts/dudLine";
+import ContratsEcheance from "../../../components/charts/ContratsEcheance";
 
 function GridDashborad() {
   return (
