@@ -7,7 +7,7 @@ import Client from "../../../components/charts/client";
 import Reservations from "../../../components/charts/reservations";
 import Birthday from "../../../components/charts/birthday";
 import DemoDualAxes from "../../../components/charts/dudLine";
-import ContratsType from "../../../components/charts/ContratsEcheance";
+import ContratsType from "../../../components/charts/echeance";
 
 function GridDashborad() {
   return (
