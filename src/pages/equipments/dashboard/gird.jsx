@@ -7,7 +7,7 @@ import Client from "../../../components/charts/client";
 import Reservations from "../../../components/charts/reservations";
 import Birthday from "../../../components/charts/birthday";
 import DemoDualAxes from "../../../components/charts/dudLine";
-import ContratsEcheance from "../../../components/charts/ContratsEcheance";
+import ContratsType from "../../../components/charts/ContratsEcheance";
 
 function GridDashborad() {
   return (
@@ -28,7 +28,7 @@ function GridDashborad() {
         <Birthday />
       </div>
       <div className=" p-5 flex items-start justify-between">
-        <ContratsEcheance />
+        <ContratsType />
         <DemoDualAxes />
       </div>
     </div>

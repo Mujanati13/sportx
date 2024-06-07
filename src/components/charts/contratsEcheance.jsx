@@ -5,7 +5,7 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 
-const ContratsEcheance = () => {
+const ContratsType = () => {
   const [expiringContracts, setExpiringContracts] = useState({});
   const [soonExpiringContracts, setSoonExpiringContracts] = useState({});
   const [displayExpired, setDisplayExpired] = useState(true);
@@ -169,4 +169,4 @@ const ContratsEcheance = () => {
 };
 
 
-export default ContratsEcheance
+export default ContratsType
