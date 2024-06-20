@@ -3,18 +3,15 @@ import {
   Table,
   Tag,
   Input,
-  Modal,
-  Form,
   Select,
   message,
-  Popconfirm,
   Drawer,
   Button,
-  DatePicker,
+  Modal,
 } from "antd";
 import {
   SearchOutlined,
-  DeleteOutlined,
+  EyeOutlined,
   PrinterOutlined,
   FileAddOutlined,
 } from "@ant-design/icons";
@@ -47,7 +44,8 @@ const TablePayemnt = () => {
   const [periedFilter, setPeriodFilter] = useState([]);
   const [StaffFilter, setStaffFilter] = useState([]);
   const [contarctClient, setcontarctClient] = useState([]);
-
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedPaymentData, setSelectedPaymentData] = useState(null);
   // State for contract related data
   const [PaymentData, setPaymentData] = useState({
     id_contrat: null,
@@ -61,6 +59,11 @@ const TablePayemnt = () => {
     type: "",
     nom_contrat: "",
   });
+
+  const handleViewPaymentData = (record) => {
+    setSelectedPaymentData(record);
+    setIsModalVisible(true);
+  };
 
   const fetchClients = async () => {
     try {
@@ -89,11 +92,18 @@ const TablePayemnt = () => {
   const handlePrint = () => {
     selectedRowKeys.map(async (key) => {
       const ContractData = data.find((client) => client.key === key);
-      const Client = contarctClient.filter((client) => client.id_employe === ContractData.id_staff);
-      console.log('====================================');
-      console.log(Client);
-      console.log('====================================');
-      handlePrintPayment(ContractData.staff, Client[0].prenom, Client[0].cin , ContractData.fonction, ContractData.nom_periode, ContractData.salaire, Client[0].validite_CIN )
+      const Client = contarctClient.filter(
+        (client) => client.id_employe === ContractData.id_staff
+      );
+      handlePrintPayment(
+        ContractData.staff,
+        Client[0].prenom,
+        Client[0].cin,
+        ContractData.fonction,
+        ContractData.nom_periode,
+        ContractData.salaire,
+        Client[0].validite_CIN
+      );
     });
   };
 
@@ -152,6 +162,19 @@ const TablePayemnt = () => {
 
   const onCloseR = () => {
     setOpen1(false);
+    setActiveStep(0);
+    setPaymentData({
+      id_contrat: null,
+      periode: null,
+      salaire: null,
+      prime: 0.0,
+      nom_periode: "",
+      staff: "",
+      fonction: "",
+      image: "",
+      type: "",
+      nom_contrat: "",
+    });
   };
 
   useEffect(() => {
@@ -227,7 +250,7 @@ const TablePayemnt = () => {
   // stepper
   const steps = [
     {
-      label: "Step 1: Informations de Paiement",
+      label: "Informations de Paiement",
       description: (
         <div className="w-full grid grid-cols-2 gap-4 mt-5">
           <div>
@@ -256,6 +279,22 @@ const TablePayemnt = () => {
                     staff: salaire.employe,
                     nom_contrat: salaire.type_contrat,
                   }));
+                } else {
+                  message.warning(
+                    "Ce client n'a pas de contrat, veuillez en créer un pour lui/elle"
+                  );
+                  setPaymentData({
+                    id_contrat: null,
+                    periode: null,
+                    salaire: null,
+                    prime: 0.0,
+                    nom_periode: "",
+                    staff: "",
+                    fonction: "",
+                    image: "",
+                    type: "",
+                    nom_contrat: "",
+                  });
                 }
               }}
               filterOption={(input, option) =>
@@ -306,12 +345,18 @@ const TablePayemnt = () => {
             <div>Prime</div>
             <Input
               value={PaymentData.prime}
-              onChange={(e) =>
-                setPaymentData((prevPaymentData) => ({
-                  ...prevPaymentData,
-                  prime: e.target.value,
-                }))
-              }
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                // Check if the input is a valid number or empty
+                if (/^\d*\.?\d*$/.test(inputValue)) {
+                  // Update state only if the input is valid
+                  setPaymentData((prevPaymentData) => ({
+                    ...prevPaymentData,
+                    prime: inputValue,
+                  }));
+                }
+                // You can optionally show an error message or handle the invalid input case here
+              }}
             />
           </div>
           <div>
@@ -347,16 +392,17 @@ const TablePayemnt = () => {
       ),
     },
     {
-      label: "Step 2: Ajouter un Paiement",
+      label: "Ajouter un Paiement",
       description: (
         <div>
           <div>Salaire final</div>
           <Input
-            value={PaymentData.salaire + PaymentData.prime}
+            disabled={false}
+            value={parseInt(PaymentData.salaire) + parseInt(PaymentData.prime)}
             onChange={(e) =>
               setPaymentData((prevPaymentData) => ({
                 ...prevPaymentData,
-                salaire: e.target.value + PaymentData.prime,
+                salaire: parseInt(e.target.value) + parseInt(PaymentData.prime),
               }))
             }
           />{" "}
@@ -364,7 +410,7 @@ const TablePayemnt = () => {
       ),
     },
     {
-      label: "Step 3: Finish",
+      label: "",
       description: (
         <div>
           <div className="mt-4">
@@ -375,7 +421,7 @@ const TablePayemnt = () => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="font-semibold">Salaries:</div>
-              <div>{PaymentData.salaire}</div>
+              <div>{parseInt(PaymentData.salaire)}</div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="font-semibold">Prime:</div>
@@ -454,6 +500,17 @@ const TablePayemnt = () => {
           title: "Salaire final",
           key: "salaireEtPrime",
           render: (text, record) => record.salaire + (record.prime || 0),
+        });
+
+        generatedColumns.push({
+          title: "",
+          key: "",
+          render: (text, record) => (
+            <EyeOutlined
+              style={{ cursor: "pointer" }}
+              onClick={() => handleViewPaymentData(record)}
+            />
+          ),
         });
 
         setColumns(generatedColumns);
@@ -562,6 +619,33 @@ const TablePayemnt = () => {
 
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Data de paiement"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+      >
+        {selectedPaymentData && (
+          <div>
+            <div className="flex items-center space-x-1">
+              <div className="font-semibold">Staff:</div>
+              <div>{selectedPaymentData.staff}</div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="font-semibold">Salaries:</div>
+              <div>{parseInt(selectedPaymentData.salaire)}</div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="font-semibold">Prime:</div>
+              <div>{selectedPaymentData.prime}</div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="font-semibold">Period:</div>
+              <div>{selectedPaymentData.nom_periode}</div>
+            </div>
+          </div>
+        )}
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -626,7 +710,7 @@ const TablePayemnt = () => {
                           optional={
                             index === 2 ? (
                               <Typography variant="caption">
-                                Last step
+                                Dernière étape
                               </Typography>
                             ) : null
                           }
@@ -643,8 +727,8 @@ const TablePayemnt = () => {
                                 sx={{ mt: 1, mr: 1 }}
                               >
                                 {index === steps.length - 1
-                                  ? "Finish"
-                                  : "Continue"}
+                                  ? "Terminer"
+                                  : "Continuer"}
                               </Button>
                               <Button
                                 className="ml-3 mt-3"
@@ -652,7 +736,7 @@ const TablePayemnt = () => {
                                 onClick={handleBack}
                                 sx={{ mt: 1, mr: 1, ml: 2 }}
                               >
-                                Back
+                                Retour
                               </Button>
                             </div>
                           </Box>
@@ -663,10 +747,10 @@ const TablePayemnt = () => {
                   {activeStep === steps.length && (
                     <Paper square elevation={0} sx={{ p: 3 }}>
                       <Typography>
-                        All steps completed - you&apos;re finished
+                        Toutes les étapes sont terminées - vous avez fini
                       </Typography>
                       <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-                        Reset
+                        Réinitialiser
                       </Button>
                     </Paper>
                   )}

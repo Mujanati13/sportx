@@ -129,6 +129,8 @@ const AddNewContract = () => {
 
   const onCloseR = () => {
     setOpen1(false);
+    setActiveStep(0);
+
   };
 
   // stepper

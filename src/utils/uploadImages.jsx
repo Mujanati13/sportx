@@ -29,7 +29,6 @@ const UploadImage = () => {
         (file.url ? file.url.substring(file.url.lastIndexOf("/") + 1) : "")
     );
   };
-
   const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
 
   const handleUploadImage = async () => {
@@ -40,25 +39,18 @@ const UploadImage = () => {
     }
 
     const file = fileList[0]; // Only upload the first file
-    // const formData = new FormData();
-    const formData = new FormData();
-    formData.append("uploadedFile", {
-      uri:  file.originFileObj.uri,
-      type:  file.originFileObj.type,
-      name:  file.originFileObj.fileName || "image.jpg",
-    });
-    formData.append("path", "client/"); // Ass
     console.log(file.originFileObj);
-    // formData.append("uploadedFile", file.originFileObj);
+
+    const formData = new FormData();
+    formData.append("uploadedFile", file.originFileObj);
+    formData.append("path", "client/");
+
     try {
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/saveImage/",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          body: { formData },
+          body: formData, // Corrected: Pass formData directly as the body
         }
       );
 

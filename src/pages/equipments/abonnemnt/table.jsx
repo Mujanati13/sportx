@@ -187,6 +187,9 @@ const TableAbonnement = () => {
   };
 
   const addCtegeries = async () => {
+    if(CategoireData.duree_mois >= 12){
+      message.warning("La durée doit être saisie comme étant de 12 mois ou moins")
+    }
     try {
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/category_contrat/",

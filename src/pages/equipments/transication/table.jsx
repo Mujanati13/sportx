@@ -96,6 +96,9 @@ const TableTransication = () => {
           }
         );
         const data = await response.json();
+        if(data.data.length == 0){
+          message.warning("Ce client n'a pas de contrat, veuillez en créer un pour lui")
+        }
         setContractClient(data.data);
       } catch (error) {
         console.error("Error fetching clients:", error);

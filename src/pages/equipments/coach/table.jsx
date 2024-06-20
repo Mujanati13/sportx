@@ -12,6 +12,7 @@ import {
   Drawer,
   Space,
   Tooltip,
+  Upload,
 } from "antd";
 import {
   SearchOutlined,
@@ -19,6 +20,7 @@ import {
   DeleteOutlined,
   PrinterOutlined,
   EditOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import {
   getCurrentDate,
@@ -40,8 +42,7 @@ const TableCoach = () => {
   const [form] = Form.useForm();
   const [open1, setOpen1] = useState(false);
   const [add, setAdd] = useState(false);
-
-  // State for room related data
+  const [imagePath, setimagePath] = useState("");
   const [ClientData, setClientData] = useState({
     civilite: "",
     nom_coach: "",
@@ -59,8 +60,74 @@ const TableCoach = () => {
     nom_ville: "",
     date_dentree: "",
     password: "",
+    image: imagePath,
   });
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+  const [previewTitle, setPreviewTitle] = useState("");
+  const [fileList, setFileList] = useState([]);
+  const handleCancel = () => setPreviewOpen(false);
+  const getBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  const handlePreview = async (file) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
+    }
+    setPreviewImage(file.url || file.preview);
+    setPreviewOpen(true);
+    setPreviewTitle(
+      file.name ||
+        (file.url ? file.url.substring(file.url.lastIndexOf("/") + 1) : "")
+    );
+  };
+  const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
+  const handleUploadImage = async () => {
+    // Check if there is a file to upload
+    if (fileList.length === 0) {
+      message.error("No files to upload.");
+      return;
+    }
 
+    const file = fileList[0]; // Only upload the first file
+    console.log(file.originFileObj);
+
+    const formData = new FormData();
+    formData.append("uploadedFile", file.originFileObj);
+    formData.append("path", "coach/");
+
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/saveImage/",
+        {
+          method: "POST",
+          body: formData, // Corrected: Pass formData directly as the body
+        }
+      );
+
+      if (response.ok) {
+        const res = await response.json();
+        setimagePath(res.path);
+        ClientData.image = res.path;
+      } else {
+        const errorResponse = await response.json();
+        message.error(`File upload failed: ${errorResponse.detail}`);
+      }
+    } catch (error) {
+      console.error("Error during file upload:", error);
+      message.error("File upload failed");
+    }
+  };
+  const uploadButton = (
+    <div>
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
   // Validation function to check if all required fields are filled for the room form
   const isRoomFormValid = () => {
     return (
@@ -81,12 +148,22 @@ const TableCoach = () => {
     try {
       // Check if the form is valid before submitting
       if (!isRoomFormValid()) {
-        message.error("Please fill in all required fields for the chamber.");
+        message.error("Veuillez remplir tous les champs requis");
+        return;
+      }
+
+      if (
+        !validateEmail(ClientData.mail) ||
+        !validateMoroccanPhoneNumber(ClientData.tel)
+      ) {
+        message.warning(
+          "Veuillez vérifier votre email ou numéro de téléphone car il a un mauvais format."
+        );
         return;
       }
 
       ClientData.ville = parseInt(ClientData.ville);
-
+      await handleUploadImage();
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/coach/",
         {
@@ -100,7 +177,7 @@ const TableCoach = () => {
       if (response.ok) {
         const res = await response.json();
         if (res.msg == "Added Successfully!!e") {
-          message.success("Coach added successfully");
+          message.success("Coach ajouté avec succès");
           setAdd(Math.random() * 1000);
           setClientData({
             civilite: "",
@@ -119,6 +196,7 @@ const TableCoach = () => {
             nom_ville: "",
             password: "",
             date_dentree: "",
+            image: imagePath,
           });
           onCloseR();
         } else {
@@ -141,6 +219,26 @@ const TableCoach = () => {
 
   const onCloseR = () => {
     setOpen1(false);
+    setFileList([])
+    setClientData({
+      civilite: "",
+      nom_coach: "",
+      prenom_coach: "",
+      adresse: "",
+      tel: "",
+      mail: "",
+      cin: "",
+      ville: 1,
+      date_naissance: "",
+      date_inscription: getCurrentDate(),
+      statut: true,
+      blackliste: false,
+      newsletter: true,
+      nom_ville: "",
+      date_dentree: "",
+      password: "",
+      image: imagePath,
+    });
   };
 
   // Function to handle form submission in the room drawer
@@ -344,7 +442,7 @@ const TableCoach = () => {
         setFilteredData(updatedData);
         setSelectedRowKeys([]);
         message.success(
-          `${selectedRowKeys.length} client(s) supprimé(s) avec succès`
+          `${selectedRowKeys.length} coach(s) supprimé(s) avec succès`
         );
       } catch (error) {
         console.error("Error deleting clients:", error);
@@ -384,8 +482,8 @@ const TableCoach = () => {
             )}
             {selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Delete coach"
-                description="Are you sure to delete this coach?"
+                title="Supprimer coach"
+                description="Êtes-vous sûr de supprimer cet coach?"
                 onConfirm={confirm}
                 onCancel={cancel}
                 okText="Yes"
@@ -428,7 +526,38 @@ const TableCoach = () => {
               <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
                 <div className="">
                   <div className="mt-0 text-center pt-0 rounded-md w-full bg-slate-100">
-                    <UploadImage />
+                    <Upload
+                      listType="picture-card"
+                      fileList={fileList}
+                      onPreview={handlePreview}
+                      onChange={handleChange}
+                      beforeUpload={() => false} // Prevent automatic upload
+                    >
+                      {fileList.length >= 1 ? null : uploadButton}
+                    </Upload>
+                    {/* <Button
+                        className="cursor-pointer"
+                        onClick={handleUploadImage}
+                        style={{ marginTop: 8 }}
+                      >
+                        Upload
+                      </Button> */}
+                    <Modal
+                      open={previewOpen}
+                      title={previewTitle}
+                      footer={null}
+                      onCancel={handleCancel}
+                    >
+                      <img
+                        alt="example"
+                        style={{
+                          width: "100%",
+                          alignContent: "center",
+                          alignItems: "center",
+                        }}
+                        src={previewImage}
+                      />
+                    </Modal>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-5">
                     <div>

@@ -44,7 +44,10 @@ const TablePeriod = () => {
 
   // Validation function to check if all required fields are filled for the room form
   const isRoomFormValid = () => {
-    return ClientData.PeriodeSalaire;
+    if (attribut.month == "" && attribut.years == "") {
+      return false;
+    }
+    return true;
   };
 
   // Function to add a new chamber
@@ -52,7 +55,7 @@ const TablePeriod = () => {
     try {
       // Check if the form is valid before submitting
       if (!isRoomFormValid()) {
-        message.error("Please fill in all required fields for the chamber.");
+        message.warning("Veuillez remplir tous les champs requis");
         return;
       }
       ClientData.PeriodeSalaire = attribut.years + " " + attribut.month;
@@ -95,6 +98,10 @@ const TablePeriod = () => {
 
   const onCloseR = () => {
     setOpen1(false);
+    Setattribut({
+      years: "",
+      month: "",
+    });
   };
 
   // Function to handle form submission in the room drawer
@@ -296,6 +303,10 @@ const TablePeriod = () => {
 
   const cancel = (e) => {
     console.log(e);
+    Setattribut({
+      years: "",
+      month: "",
+    });
   };
 
   return (

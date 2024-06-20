@@ -166,6 +166,23 @@ const TableContract = () => {
 
   const onCloseR = () => {
     setOpen1(false);
+    setActiveStep(0);
+    setContractData({
+      id_client: "",
+      date_debut: getCurrentDate(),
+      date_fin: null,
+      reste: null,
+      id_abn: null,
+      Type: true,
+      type: "",
+      reduction: "",
+      id_etablissement: 19,
+      abonnement: "",
+      Mode_reglement: "Espèces",
+      description: "",
+      montant: null,
+      id_admin: null,
+    });
   };
 
   // stepper
@@ -468,7 +485,7 @@ const TableContract = () => {
                           <span
                             style={{ fontWeight: "bold", marginRight: "8px" }}
                           >
-                            {toCapitalize(key.replaceAll("_"," "))}:
+                            {toCapitalize(key.replaceAll("_", " "))}:
                           </span>
                           <span>{value}</span>
                         </div>
