@@ -83,7 +83,6 @@ const TableSeance = () => {
     console.log(JSON.stringify(appointmentData.id));
     handleEditClickCalander(JSON.stringify(appointmentData.id));
     setIsFormVisible(true);
-    // setIsModalVisible(true);
   };
 
   //
@@ -178,15 +177,27 @@ const TableSeance = () => {
     );
   };
 
+  const isValidTimeRange = () => {
+    const startTime = new Date(`2000-01-01T${ClientData.heure_debut}`);
+    const endTime = new Date(`2000-01-01T${ClientData.heure_fin}`);
+    return endTime > startTime;
+  };
+
   // Function to add a new chamber
   const addClient = async () => {
     const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
     try {
       // Check if the form is valid before submitting
       if (!isRoomFormValid()) {
-        message.error("Please fill in all required fields for the chamber.");
+        message.warning("Remplissez tous les champs obligatoires");
         return;
       }
+
+      if (!isValidTimeRange()) {
+        message.warning("L'heure de fin doit être après l'heure de début");
+        return;
+      }
+
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/seance/",
         {
@@ -240,6 +251,22 @@ const TableSeance = () => {
 
   const onCloseR = () => {
     setOpen1(false);
+    setClientData({
+      id_cour: null,
+      id_coach: null,
+      id_salle: null,
+      capacity: null,
+      jour: null,
+      heure_debut: null,
+      heure_fin: null,
+      cour: "",
+      coach: "",
+      salle: "",
+      genre: "",
+      day_name: "",
+      date_reservation: getCurrentDate(),
+      nb_reservations: 0,
+    });
   };
 
   // Function to handle form submission in the room drawer
@@ -394,6 +421,10 @@ const TableSeance = () => {
   };
 
   const handleModalSubmit = async () => {
+    if (!isValidTimeRange()) {
+      message.warning("L'heure de fin doit être après l'heure de début");
+      return;
+    }
     console.log();
     try {
       const response = await fetch(
@@ -449,6 +480,22 @@ const TableSeance = () => {
   const handleModalCancel = () => {
     setIsModalVisible(false);
     setEditingClient(null);
+    setClientData({
+      id_cour: null,
+      id_coach: null,
+      id_salle: null,
+      capacity: null,
+      jour: null,
+      heure_debut: null,
+      heure_fin: null,
+      cour: "",
+      coach: "",
+      salle: "",
+      genre: "",
+      day_name: "",
+      date_reservation: getCurrentDate(),
+      nb_reservations: 0,
+    });
   };
 
   const handleDelete = async () => {
@@ -533,6 +580,22 @@ const TableSeance = () => {
   };
 
   const cancel = (e) => {
+    setClientData({
+      id_cour: null,
+      id_coach: null,
+      id_salle: null,
+      capacity: null,
+      jour: null,
+      heure_debut: null,
+      heure_fin: null,
+      cour: "",
+      coach: "",
+      salle: "",
+      genre: "",
+      day_name: "",
+      date_reservation: getCurrentDate(),
+      nb_reservations: 0,
+    });
     console.log(e);
   };
 
@@ -639,11 +702,14 @@ const TableSeance = () => {
           ) : (
             ""
           )}
-           {!display ? (
-             <div><ClockCircleOutlined /><span className="ml-2 font-medium">Calendrier</span></div>
-            ) : (
-              " "
-            )}
+          {!display ? (
+            <div>
+              <ClockCircleOutlined />
+              <span className="ml-2 font-medium">Calendrier</span>
+            </div>
+          ) : (
+            " "
+          )}
           <div className="flex items-center space-x-6">
             {selectedRowKeys.length === 1 ? (
               <EditOutlined
@@ -667,17 +733,16 @@ const TableSeance = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {/* {selectedRowKeys.length >= 1 ? (
               <PrinterOutlined disabled={true} />
             ) : (
               ""
-            )}
+            )} */}
           </div>
         </div>
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            
             {display ? (
               <Button
                 type="default"
@@ -689,7 +754,7 @@ const TableSeance = () => {
             ) : (
               " "
             )}
-           
+
             <Segmented
               onChange={(v) => {
                 setDisplay(!display);
@@ -840,11 +905,6 @@ const TableSeance = () => {
                         filterOption={(input, option) =>
                           (option?.label ?? "").startsWith(input)
                         }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
                         options={[
                           { label: "Lundi", value: 1 },
                           { label: "Mardi", value: 2 },
@@ -859,7 +919,7 @@ const TableSeance = () => {
                     <div>
                       <label>Heur debut</label>
                       <div>
-                        <input
+                        <Input
                           type="time"
                           className="w-full border bottom-1 border-gray-200 p-1 rounded-md"
                           value={ClientData.heure_debut}
@@ -876,7 +936,7 @@ const TableSeance = () => {
                     <div>
                       <label>Heur de fine</label>
                       <div>
-                        <input
+                        <Input
                           type="time"
                           className="w-full border bottom-1 border-gray-200 p-1 rounded-md"
                           value={ClientData.heure_fin}

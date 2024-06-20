@@ -19,6 +19,7 @@ import {
   DeleteOutlined,
   PrinterOutlined,
   EditOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import {
   getCurrentDate,
@@ -40,6 +41,8 @@ const TableClient = () => {
   const [form] = Form.useForm();
   const [open1, setOpen1] = useState(false);
   const [add, setAdd] = useState(false);
+  const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
 
   // State for room related data
   const [ClientData, setClientData] = useState({
@@ -57,7 +60,7 @@ const TableClient = () => {
     blackliste: false,
     newsletter: true,
     nom_ville: "",
-    password: "",
+    password: null,
   });
 
   // Validation function to check if all required fields are filled for the room form
@@ -70,9 +73,8 @@ const TableClient = () => {
       validateMoroccanPhoneNumber(ClientData.tel) &&
       validateEmail(ClientData.mail) &&
       ClientData.cin !== "" &&
-      // ClientData.ville !== "" &&
-      ClientData.date_naissance !== "" &&
-      ClientData.password !== ""
+      ClientData.ville !== "" &&
+      ClientData.date_naissance !== ""
     );
   };
 
@@ -81,7 +83,7 @@ const TableClient = () => {
     try {
       // Check if the form is valid before submitting
       if (!isRoomFormValid()) {
-        message.error("Please fill in all required fields for the chamber.");
+        message.warning("Veuillez remplir tous les champs obligatoires");
         return;
       }
 
@@ -98,7 +100,7 @@ const TableClient = () => {
       if (response.ok) {
         const res = await response.json();
         if (res.msg == "Added Successfully!!e") {
-          message.success("Client added successfully");
+          message.success("Client ajouté avec succès");
           setAdd(Math.random() * 1000);
           setClientData({
             civilite: "",
@@ -115,7 +117,6 @@ const TableClient = () => {
             blackliste: false,
             newsletter: true,
             nom_ville: "",
-            password: "",
           });
           onCloseR();
         } else {
@@ -143,6 +144,11 @@ const TableClient = () => {
   // Function to handle form submission in the room drawer
   const handleRoomSubmit = () => {
     addClient();
+  };
+
+  const handleDetailsModalCancel = () => {
+    setIsDetailsModalVisible(false);
+    setSelectedClient(null);
   };
 
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
@@ -173,11 +179,12 @@ const TableClient = () => {
         // Generate columns based on the desired keys
         const desiredKeys = [
           "nom_client",
-          "ville",
+          "nom_ville",
           "tel",
           "mail",
           "adresse",
           "date_inscription",
+          "",
         ];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
@@ -192,6 +199,18 @@ const TableClient = () => {
               );
             } else if (key === "date_inscription") {
               return <Tag>{text}</Tag>;
+            } else if (key === "") {
+              return (
+                <Tooltip title="View Details">
+                  <EyeOutlined
+                    onClick={() => {
+                      setSelectedClient(record);
+                      setIsDetailsModalVisible(true);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  />
+                </Tooltip>
+              );
             }
             return text;
           },
@@ -241,6 +260,7 @@ const TableClient = () => {
         (client) => client.key === selectedRowKeys[0]
       );
       setEditingClient(clientToEdit);
+      console.log(clientToEdit);
       form.setFieldsValue(clientToEdit);
       setIsModalVisible(true);
     }
@@ -263,15 +283,10 @@ const TableClient = () => {
         return;
       }
 
-      // Check if password is not empty
-      if (!password) {
-        message.error("Veuillez entrer le mot de passe");
-        return;
-      }
-
       // Add id_client to the values object
       values.id_client = editingClient.key;
-      console.log(values);
+      values.password = null;
+      console.log(editingClient);
 
       const response = await fetch(
         `https://fithouse.pythonanywhere.com/api/clients/`,
@@ -364,6 +379,31 @@ const TableClient = () => {
 
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Client Details"
+        visible={isDetailsModalVisible}
+        onCancel={handleDetailsModalCancel}
+        footer={null}
+      >
+        {selectedClient && (
+          <div>
+            <p>Civilité: {selectedClient.civilite}</p>
+            <p>Nom: {selectedClient.nom_client}</p>
+            <p>Prénom: {selectedClient.prenom_client}</p>
+            <p>Adresse: {selectedClient.adresse}</p>
+            <p>Téléphone: {selectedClient.tel}</p>
+            <p>Email: {selectedClient.mail}</p>
+            <p>CIN: {selectedClient.cin}</p>
+            <p>Ville: {selectedClient.ville}</p>
+            <p>Date de naissance: {selectedClient.date_naissance}</p>
+            <p>Date d'inscription: {selectedClient.date_inscription}</p>
+            <p>Status: {selectedClient.statut ? "Active" : "Inactive"}</p>
+            <p>Blackliste: {selectedClient.blackliste ? "Oui" : "Non"}</p>
+            <p>Newsletter: {selectedClient.newsletter ? "Oui" : "Non"}</p>
+          </div>
+        )}
+      </Modal>
+
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -385,8 +425,8 @@ const TableClient = () => {
             )}
             {selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Delete the Clinet"
-                description="Are you sure to delete this Clinet?"
+                title="Supprimer le client"
+                description="Êtes-vous sûr de supprimer ce client ?"
                 onConfirm={confirm}
                 onCancel={cancel}
                 okText="Yes"
@@ -805,11 +845,7 @@ const TableClient = () => {
             >
               <Input />
             </Form.Item>
-            <Form.Item
-              name="password"
-              label="Password"
-              rules={[{ required: true, message: "Please input password!" }]}
-            >
+            <Form.Item name="password" label="Password">
               <Input />
             </Form.Item>
             <Form.Item name="cin" label="CIN">

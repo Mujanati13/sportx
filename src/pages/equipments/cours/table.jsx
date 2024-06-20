@@ -17,6 +17,7 @@ import {
   UserAddOutlined,
   DeleteOutlined,
   EditOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
 import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
@@ -37,6 +38,8 @@ const TableCours = () => {
   const [add, setAdd] = useState(false);
   const [contarctClient, setcontarctClient] = useState([]);
   const [contarctStaff, setcontarctStaff] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
 
   // State for room related data
   const [ClientData, setClientData] = useState({
@@ -120,7 +123,7 @@ const TableCours = () => {
       if (response.ok) {
         const res = await response.json();
         if (res == "Added Successfully!!") {
-          message.success("Cour added successfully");
+          message.success("Cour ajoutée avec succès");
           setAdd(Math.random() * 1000);
           setClientData({
             nom_cour: "",
@@ -151,19 +154,22 @@ const TableCours = () => {
   const onCloseR = () => {
     setOpen1(false);
     setClientData({
-      id_employe: null,
-      date_debut: "",
-      date_fin: null,
-      type_contrat: "",
-      salaire: 0,
-      employe: "",
-      image: "",
+      nom_cour: "",
+      description: "",
+      reglement: "",
+      genre: "",
+      image: "cours/avatar.jpg",
     });
   };
 
   // Function to handle form submission in the room drawer
   const handleRoomSubmit = () => {
     addClient();
+  };
+
+  const handleViewDetails = (course) => {
+    setSelectedCourse(course);
+    setIsViewModalVisible(true);
   };
 
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
@@ -185,14 +191,21 @@ const TableCours = () => {
         // Ensure each row has a unique key
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_cour || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id_cour || index, 
+          nom_cours: item.nom_cour, 
         }));
 
         setData(processedData);
         setFilteredData(processedData);
 
         // Generate columns based on the desired keys
-        const desiredKeys = ["nom_cour", "description", "reglement", "genre"];
+        const desiredKeys = [
+          "nom_cours",
+          "description",
+          "reglement",
+          "genre",
+          "",
+        ];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
           dataIndex: key,
@@ -202,6 +215,13 @@ const TableCours = () => {
               return <div>{text}</div>;
             } else if (key === "date_inscription") {
               return <Tag>{text}</Tag>;
+            } else if (key === "") {
+              return (
+                <EyeOutlined
+                  onClick={() => handleViewDetails(record)}
+                  style={{ cursor: "pointer" }}
+                />
+              );
             }
             return text;
           },
@@ -269,7 +289,7 @@ const TableCours = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify({...values, id_cour:editingClient.id_cour}),
+          body: JSON.stringify({ ...values, id_cour: editingClient.id_cour }),
         }
       );
 
@@ -352,12 +372,27 @@ const TableCours = () => {
 
   return (
     <div className="w-full p-2">
+      <Modal
+        title={`Details of ${selectedCourse?.nom_cour}`}
+        visible={isViewModalVisible}
+        onCancel={() => {
+          setIsViewModalVisible(false);
+          setSelectedCourse(null);
+        }}
+        footer={null}
+      >
+        {/* Display the details of the selected course here */}
+        <p><span className="font-medium">Description</span>: {selectedCourse?.description}</p>
+        <p>Reglement: {selectedCourse?.reglement}</p>
+        <p>Genre: {selectedCourse?.genre}</p>
+        {/* Add other details as needed */}
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
             <Input
               prefix={<SearchOutlined />}
-              placeholder="Search Cour"
+              placeholder="Search Cours"
               value={searchText}
               onChange={handleSearch}
             />
@@ -395,11 +430,11 @@ const TableCours = () => {
               onClick={showDrawerR}
               icon={<UserAddOutlined />}
             >
-              Ajoute Cour
+              Ajoute Cours
             </Button>
           </div>
           <Drawer
-            title="Saisir un nouveau Cour"
+            title="Saisir un nouveau Cours"
             width={720}
             onClose={onCloseR}
             closeIcon={false}
@@ -413,7 +448,7 @@ const TableCours = () => {
                 <div className="">
                   <div className="grid grid-cols-2 gap-4 mt-5">
                     <div>
-                      <div>*Nom cour</div>
+                      <div>*Nom cours</div>
                       <Input
                         value={ClientData.nom_cour}
                         onChange={(value) =>
@@ -422,7 +457,7 @@ const TableCours = () => {
                             nom_cour: value.target.value,
                           })
                         }
-                        placeholder="Nom cour"
+                        placeholder="Nom cours"
                       ></Input>
                     </div>
                     <div>
@@ -512,15 +547,15 @@ const TableCours = () => {
         rowSelection={rowSelection}
       />
       <Modal
-        title="Edit Cour"
+        title="Edit Cours"
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
       >
         <div className="h-96 overflow-y-auto">
           <Form form={form} layout="vertical">
-            <Form.Item name="nom_cour" label="nom_cour">
-              <Input rules={[{ required: true, message: "Nom cour" }]} />
+            <Form.Item name="nom_cour" label="Nom cours">
+              <Input rules={[{ required: true, message: "Nom cours" }]} />
             </Form.Item>
             <Form.Item name="description" label="description">
               <Input rules={[{ required: true, message: "description" }]} />

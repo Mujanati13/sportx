@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Space, Table, Tag } from "antd";
+import { Space, Table, Tag, Modal, Form, Input, Button } from "antd";
+import { EyeOutlined, EditOutlined } from "@ant-design/icons";
 
-const TableEtablisimment = () => {
+const TableEtablissement = () => {
   const [data, setData] = useState([]);
+  const [add, Setadd] = useState();
+  const [loading, setLoading] = useState(false);
   const [columns, setColumns] = useState([]);
-  const authToken =  localStorage.getItem("jwtToken"); // Replace with your actual auth token
+  const [visibleModal, setVisibleModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [form] = Form.useForm();
+  const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const response = await fetch(
           "https://fithouse.pythonanywhere.com/api/etablissements",
           {
             headers: {
-              "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
+              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
             },
           }
         );
@@ -28,35 +36,223 @@ const TableEtablisimment = () => {
           "mailetablissement",
           "sitewebetablissement",
           "nb_clients",
+          "",
         ];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
           dataIndex: key,
           key,
           render: (text, record) => {
-            if (key === "sitewebetablissement") {
-              return <a href={text} target="_blank" rel="noopener noreferrer">{text}</a>;
+            if (key === "Modifier") {
+              return (
+                <Button
+                  className="mt-5"
+                  type="default"
+                  icon={<EditOutlined onClick={handleEdit} />}
+                  onClick={handleEdit}
+                >
+                  dd
+                </Button>
+              );
+            }
+            if (key === "") {
+              return (
+                <span>
+                  <EyeOutlined
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      setSelectedRecord(record);
+                      setVisibleModal(true);
+                      setEditMode(false);
+                    }}
+                  />
+                </span>
+              );
             }
             return text;
           },
         }));
         setColumns(generatedColumns);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [authToken]);
+  }, [authToken, add]);
 
   // Function to capitalize the first letter of a string
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
+  const handleModalCancel = () => {
+    setVisibleModal(false);
+    setSelectedRecord(null);
+  };
+
+  const handleEdit = () => {
+    setEditMode(true);
+    form.setFieldsValue(selectedRecord);
+  };
+
+  const handleFormSubmit = async (values) => {
+    try {
+      const response = await fetch(
+        `https://fithouse.pythonanywhere.com/api/etablissements/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({
+            ...values,
+            id_etablissement: selectedRecord.id_etablissement,
+          }),
+        }
+      );
+      const updatedRecord = await response.json();
+      setData((prevData) =>
+        prevData.map((item) =>
+          item.id_etablissement === updatedRecord.id_etablissement
+            ? updatedRecord
+            : item
+        )
+      );
+      setVisibleModal(false);
+      setSelectedRecord(null);
+      Setadd(Math.random() * 10000);
+    } catch (error) {
+      console.error("Error updating data:", error);
+    }
+  };
+
   return (
-    <Table size="large" className="w-full" columns={columns} dataSource={data} />
+    <div>
+      <Table
+        loading={loading}
+        size="large"
+        className="w-full"
+        columns={columns}
+        dataSource={data}
+        rowKey="id_etablissement" // Use id_etablissement as rowKey to avoid key warnings
+      />
+      <Modal
+        visible={visibleModal}
+        onCancel={handleModalCancel}
+        footer={null}
+        title={selectedRecord?.nom_etablissement}
+      >
+        {selectedRecord && !editMode && (
+          <div>
+            <p>Adresse: {selectedRecord.adresse_etablissement}</p>
+            <p>Ville: {selectedRecord.ville}</p>
+            <p>Téléphone: {selectedRecord.teletablissement}</p>
+            <p>Email: {selectedRecord.mailetablissement}</p>
+            <p>Description: {selectedRecord.description}</p>
+            <p>
+              Site web:{" "}
+              <a
+                href={selectedRecord.sitewebetablissement}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {selectedRecord.sitewebetablissement}
+              </a>
+            </p>
+            <p>
+              Facebook:{" "}
+              <a
+                href={selectedRecord.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {selectedRecord.facebook}
+              </a>
+            </p>
+            <p>
+              Instagram:{" "}
+              <a
+                href={selectedRecord.instagrame}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {selectedRecord.instagrame}
+              </a>
+            </p>
+            <p>WhatsApp: {selectedRecord.watsapp}</p>
+            <p>Nombre de clients: {selectedRecord.nb_clients}</p>
+            <p>
+              <img
+                className="w-full h-80 mt-4"
+                src={`https://fithouse.pythonanywhere.com/media/${selectedRecord.image}`}
+                alt="Etablissement"
+                style={{ width: "100%", height: "auto" }}
+              />
+            </p>
+            <Button
+              className="mt-5"
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={handleEdit}
+            >
+              Modifier
+            </Button>
+          </div>
+        )}
+        {selectedRecord && editMode && (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleFormSubmit}
+            initialValues={selectedRecord}
+          >
+            <Form.Item name="nom_etablissement" label="Nom Etablissement">
+              <Input />
+            </Form.Item>
+            <Form.Item name="adresse_etablissement" label="Adresse">
+              <Input />
+            </Form.Item>
+            <Form.Item name="ville" label="Ville">
+              <Input />
+            </Form.Item>
+            <Form.Item name="teletablissement" label="Téléphone">
+              <Input />
+            </Form.Item>
+            <Form.Item name="mailetablissement" label="Email">
+              <Input />
+            </Form.Item>
+            <Form.Item name="description" label="Description">
+              <Input />
+            </Form.Item>
+            <Form.Item name="sitewebetablissement" label="Site Web">
+              <Input />
+            </Form.Item>
+            <Form.Item name="facebook" label="Facebook">
+              <Input />
+            </Form.Item>
+            <Form.Item name="instagrame" label="Instagram">
+              <Input />
+            </Form.Item>
+            <Form.Item name="watsapp" label="WhatsApp">
+              <Input />
+            </Form.Item>
+            <Form.Item name="nb_clients" label="Nombre de Clients">
+              <Input />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Sauvegarder
+              </Button>
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+    </div>
   );
 };
 
-export default TableEtablisimment;
+export default TableEtablissement;

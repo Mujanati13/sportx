@@ -21,6 +21,7 @@ import {
   EditOutlined,
   BorderOuterOutlined,
   PlusOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 
 const TableAbonnement = () => {
@@ -48,7 +49,10 @@ const TableAbonnement = () => {
   const [add1, setAdd1] = useState(false);
   const [categories, setcategories] = useState([]);
   const [contarctValue, setcontarctValue] = useState([]);
-
+  const [showAbonnementModal, setShowAbonnementModal] = useState(false);
+  const [showCategorieModal, setShowCategorieModal] = useState(false);
+  const [selectedAbonnement, setSelectedAbonnement] = useState(null);
+  const [selectedCategorie, setSelectedCategorie] = useState(null);
   // State for room related data
   const [ClientData, setClientData] = useState({
     type_abonnement: "",
@@ -62,6 +66,42 @@ const TableAbonnement = () => {
     type_contrat: "",
     duree_mois: null,
   });
+
+  const AbonnementDetailsModal = ({ visible, onClose, abonnement }) => {
+    return (
+      <Modal
+        visible={visible}
+        onCancel={onClose}
+        footer={null}
+        title="Abonnement Details"
+      >
+        <div>
+          <p>Type abonnement: {abonnement?.type_abonnement}</p>
+          <p>Tarif: {abonnement?.tarif}</p>
+          <p>Catégorie contrat: {abonnement?.namecat_conrat}</p>
+          <p>Durée (mois): {abonnement?.duree_mois}</p>
+          {/* Add more abonnement details as needed */}
+        </div>
+      </Modal>
+    );
+  };
+
+  const CategorieDetailsModal = ({ visible, onClose, categorie }) => {
+    return (
+      <Modal
+        visible={visible}
+        onCancel={onClose}
+        footer={null}
+        title="Catégorie Details"
+      >
+        <div>
+          <p>Type contrat: {categorie?.type_contrat}</p>
+          <p>Durée (mois): {categorie?.duree_mois}</p>
+          {/* Add more categorie details as needed */}
+        </div>
+      </Modal>
+    );
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,49 +134,55 @@ const TableAbonnement = () => {
 
   // Validation function to check if all required fields are filled for the room form
   const isRoomFormValid = () => {
-    const { nom_cour, description, reglement, genre } = ClientData;
-    if ((nom_cour, description, reglement, genre)) return true;
+    const { type_abonnement, tarif, id_cat_cont, namecat_conrat, duree_mois } =
+      ClientData;
+    if ((type_abonnement, tarif, id_cat_cont, namecat_conrat, duree_mois))
+      return true;
+    else false;
   };
 
   // Function to add a new chamber
   const addClient = async () => {
-    // check in contra staf
-    try {
-      const response = await fetch(
-        "https://fithouse.pythonanywhere.com/api/abonnement/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-          },
-          body: JSON.stringify(ClientData),
-        }
-      );
-      if (response.ok) {
-        const res = await response.json();
-        if (res == "Added Successfully!!") {
-          message.success("abonnement ajouté avec succès");
-          setAdd(Math.random() * 1000);
-          setClientData({
-            type_abonnement: "",
-            tarif: null,
-            id_cat_cont: null,
-            namecat_conrat: "",
-            duree_mois: null,
-          });
-          onCloseR();
+    if (isRoomFormValid()) {
+      try {
+        const response = await fetch(
+          "https://fithouse.pythonanywhere.com/api/abonnement/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+            },
+            body: JSON.stringify(ClientData),
+          }
+        );
+        if (response.ok) {
+          const res = await response.json();
+          if (res == "Added Successfully!!") {
+            message.success("abonnement ajouté avec succès");
+            setAdd(Math.random() * 1000);
+            setClientData({
+              type_abonnement: "",
+              tarif: null,
+              id_cat_cont: null,
+              namecat_conrat: "",
+              duree_mois: null,
+            });
+            onCloseR();
+          } else {
+            message.warning(res.msg);
+            console.log(res);
+          }
         } else {
-          message.warning(res.msg);
-          console.log(res);
+          console.log(response);
+          message.error("Error adding chamber");
         }
-      } else {
-        console.log(response);
-        message.error("Error adding chamber");
+      } catch (error) {
+        console.log(error);
+        message.error("An error occurred:", error);
       }
-    } catch (error) {
-      console.log(error);
-      message.error("An error occurred:", error);
+    } else {
+      message.warning("Tous les champs sont obligatoires");
     }
   };
 
@@ -581,6 +627,23 @@ const TableAbonnement = () => {
 
   return (
     <div className="w-full p-2">
+      <AbonnementDetailsModal
+        visible={showAbonnementModal}
+        onClose={() => {
+          setShowAbonnementModal(false);
+          setSelectedAbonnement(null);
+        }}
+        abonnement={selectedAbonnement}
+      />
+
+      <CategorieDetailsModal
+        visible={showCategorieModal}
+        onClose={() => {
+          setShowCategorieModal(false);
+          setSelectedCategorie(null);
+        }}
+        categorie={selectedCategorie}
+      />
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -611,6 +674,22 @@ const TableAbonnement = () => {
               >
                 <DeleteOutlined className="cursor-pointer" />{" "}
               </Popconfirm>
+            ) : (
+              ""
+            )}
+            {selectedRowKeys.length === 1 ? (
+              <div className="flex items-center space-x-4">
+                <EyeOutlined
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
+                    setSelectedAbonnement(
+                      data.find((item) => item.key === selectedRowKeys[0])
+                    );
+                    setShowAbonnementModal(true);
+                  }}
+                />
+                {/* ... */}
+              </div>
             ) : (
               ""
             )}
@@ -747,6 +826,21 @@ const TableAbonnement = () => {
                       ></Input>
                     </div>
                     <div>
+                      {/* <Input
+                        value={CategoireData.duree_mois}
+                        type="number"
+                        count={{
+                          show: true,
+                          max: 10,
+                        }}
+                        placeholder="Duree mois"
+                        onChange={(value) =>
+                          setCategoireData({
+                            ...CategoireData,
+                            duree_mois: value.target.value,
+                          })
+                        }
+                      /> */}
                       <Input
                         value={CategoireData.duree_mois}
                         type="number"
@@ -797,6 +891,24 @@ const TableAbonnement = () => {
                     >
                       <DeleteOutlined className="cursor-pointer" />{" "}
                     </Popconfirm>
+                  ) : (
+                    ""
+                  )}
+                  {selectedRowKeys1.length === 1 ? (
+                    <div className="flex items-center space-x-4">
+                      <EyeOutlined
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setSelectedCategorie(
+                            data1.find(
+                              (item) => item.key === selectedRowKeys1[0]
+                            )
+                          );
+                          setShowCategorieModal(true);
+                        }}
+                      />
+                      {/* ... */}
+                    </div>
                   ) : (
                     ""
                   )}
@@ -889,18 +1001,40 @@ const TableAbonnement = () => {
       </Modal>
 
       <Modal
-        title="Edit Categorie"
+        title="Modifier Catégorie"
         visible={isModalVisible1}
         onOk={handleModalSubmit1}
         onCancel={handleModalCancel1}
+        footer={[
+          <Button key="back" onClick={handleModalCancel1}>
+            Annuler
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleModalSubmit1}>
+            Valider
+          </Button>,
+        ]}
       >
         <div className="h-96 overflow-y-auto mt-10">
           <Form form={form1} layout="vertical">
-            <Form.Item name="type_contrat" label="Type contrat">
-              <Input rules={[{ required: true, message: "categorie" }]} />
+            <Form.Item name="type_contrat" label="Type de contrat">
+              <Input
+                rules={[
+                  {
+                    required: true,
+                    message: "Veuillez entrer le type de contrat",
+                  },
+                ]}
+              />
             </Form.Item>
-            <Form.Item name="duree_mois" label="Duree mois">
-              <Input rules={[{ required: true, message: "categorie" }]} />
+            <Form.Item name="duree_mois" label="Durée en mois">
+              <Input
+                rules={[
+                  {
+                    required: true,
+                    message: "Veuillez entrer la durée en mois",
+                  },
+                ]}
+              />
             </Form.Item>
           </Form>
         </div>

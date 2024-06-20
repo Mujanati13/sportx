@@ -8,12 +8,15 @@ import {
   Drawer,
   Button,
   Popconfirm,
+  Tooltip,
+  Modal,
 } from "antd";
 import {
   SearchOutlined,
   FileTextOutlined,
   SendOutlined,
   DeleteOutlined,
+  EyeOutlined,
   FileAddOutlined,
 } from "@ant-design/icons";
 
@@ -53,6 +56,8 @@ const TableNotification = () => {
   const [contarctClient, setcontarctClient] = useState([]);
   const [searchText1, setSearchText1] = useState("");
   const [selectedValues, setSelectedValues] = useState(["all"]);
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   // State for contract related data
   const [PaymentData, setPaymentData] = useState({
@@ -62,6 +67,25 @@ const TableNotification = () => {
     contenu: "",
     cible: "",
   });
+
+  const NotificationDetailsModal = ({ visible, onClose, notification }) => {
+    return (
+      <Modal
+        visible={visible}
+        onCancel={onClose}
+        footer={null}
+        title="Notification Details"
+      >
+        <div>
+          <p>Sujet: {notification?.sujet}</p>
+          <p>Contenu: {notification?.contenu}</p>
+          <p>Cible: {notification?.cible}</p>
+          <p>Date d'envoi: {notification?.date_envoye}</p>
+          {/* Add more notification details as needed */}
+        </div>
+      </Modal>
+    );
+  };
 
   const handleSearch1 = (e) => {
     const value = e.target.value.toLowerCase();
@@ -177,7 +201,39 @@ const TableNotification = () => {
       if (response.ok) {
         const res = await response.json();
         if (res) {
-          message.success("Notification ajoutée avec succès");
+          const selectedUserIds = selectedRowKeys.map(
+            (key) => filteredData1.find((item) => item.key === key)?.id_client
+          );
+
+          for (const userId of selectedUserIds) {
+            const notificationData = {
+              user_id: userId.toString(),
+              title: PaymentData.sujet,
+              body: PaymentData.contenu,
+              id_admin: PaymentData.id_admin,
+            };
+
+            const pushResponse = await fetch(
+              "https://fithouse.pythonanywhere.com/api/send/notificationsportX/",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${authToken}`,
+                },
+                body: JSON.stringify(notificationData),
+              }
+            );
+
+            if (!pushResponse.ok) {
+              console.error(
+                `Failed to send push notification to user ${userId}`
+              );
+            } else {
+              console.log(notificationData);
+              message.success("Notification ajoutée avec succès");
+            }
+          }
           setAdd(Math.random() * 1000);
           onCloseR();
         } else {
@@ -195,6 +251,9 @@ const TableNotification = () => {
   };
 
   const showDrawerR = () => {
+    if (selectedNotification) {
+      setPaymentData(selectedNotification);
+    }
     setOpen1(true);
   };
 
@@ -487,9 +546,13 @@ const TableNotification = () => {
 
   const rowSelection = {
     selectedRowKeys,
-    onChange: (selectedRowKeys) => {
+    onChange: (selectedRowKeys, selectedRows) => {
       setSelectedRowKeys(selectedRowKeys);
-      console.log("selectedRowKeys changed: ", selectedRowKeys);
+      if (selectedRows.length === 1) {
+        setSelectedNotification(selectedRows[0]);
+      } else {
+        setSelectedNotification(null);
+      }
     },
     getCheckboxProps: (record) => ({
       disabled: record.name === "Disabled User", // Disable checkbox for specific rows
@@ -555,6 +618,11 @@ const TableNotification = () => {
 
   return (
     <div className="w-full p-2">
+      <NotificationDetailsModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        notification={selectedNotification}
+      />
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -581,11 +649,37 @@ const TableNotification = () => {
             ) : (
               ""
             )}
-            {/* {selectedRowKeys.length >= 1 ? (
-              <PrinterOutlined onClick={handlePrint} disabled={true} />
+            {selectedRowKeys.length == 1 ? (
+              <EyeOutlined
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  setSelectedNotification(
+                    data.find((item) => item.key === selectedRowKeys[0])
+                  );
+                  setIsModalVisible(true);
+                }}
+              />
             ) : (
               ""
-            )} */}
+            )}
+            {selectedRowKeys.length == 1 ? (
+              <Tooltip title="dupliquer cette notification">
+                <img
+                  className="cursor-pointer"
+                  width="20"
+                  height="20"
+                  src="https://img.icons8.com/material-rounded/48/duplicate.png"
+                  alt="duplicate"
+                  onClick={() => {
+                    // Prefill the "Add New Notification" form with the selected notification data
+                    setPaymentData(selectedNotification);
+                    showDrawerR();
+                  }}
+                />
+              </Tooltip>
+            ) : (
+              ""
+            )}
           </div>
         </div>
         {/* add contract */}

@@ -23,7 +23,7 @@ import StepLabel from "@mui/material/StepLabel";
 import StepContent from "@mui/material/StepContent";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { addMonths, getCurrentDate } from "../../../utils/helper";
+import { addMonths, getCurrentDate, toCapitalize } from "../../../utils/helper";
 import dayjs from "dayjs";
 import { handlePrintContract } from "../../../utils/printable/contract";
 
@@ -47,12 +47,12 @@ const TableContract = () => {
     date_fin: null,
     reste: null,
     id_abn: null,
-    Type: "",
+    Type: true,
     type: "",
     reduction: "",
     id_etablissement: 19,
     abonnement: "",
-    Mode_reglement: "",
+    Mode_reglement: "Espèces",
     description: "",
     montant: null,
     id_admin: null,
@@ -95,7 +95,7 @@ const TableContract = () => {
     selectedRowKeys.map(async (key) => {
       const ContractData = data.find((client) => client.key === key);
       const Client = clients.filter(
-        (client) => client.id_client == ContractData.id_client
+        (client) => client.id_client === ContractData.id_client
       );
       handlePrintContract(
         ContractData.client,
@@ -143,7 +143,7 @@ const TableContract = () => {
       if (response.ok) {
         const res = await response.json();
         if (res.msg === "Added Successfully!!") {
-          message.success("Contract added successfully");
+          message.success("Contrat ajouté avec succès");
           setAdd(Math.random() * 1000);
           onCloseR();
         } else {
@@ -171,7 +171,7 @@ const TableContract = () => {
   // stepper
   const steps = [
     {
-      label: "Step 1: Informations de contrat",
+      label: "Informations de contrat",
       description: (
         <div className="w-full grid grid-cols-2 gap-4 mt-5">
           <div>
@@ -233,6 +233,7 @@ const TableContract = () => {
                     tarif: tarif,
                     abonnement: `${type_abonnement} ${namecat_conrat}`, // Update abonnement here
                   }));
+                  ContractData.reste = tarif;
                   setTarif(tarif);
                 }
               }}
@@ -284,12 +285,17 @@ const TableContract = () => {
               size="middle"
               placeholder="Réduction"
               value={ContractData.reduction}
-              onChange={(e) =>
+              onChange={(e) => {
+                if (e.target.value > tarif) {
+                  message.warning("Réduction doit être inférieur au tarif ");
+                  return;
+                }
+                ContractData.reste = ContractData.reste - e.target.value;
                 setContractData({
                   ...ContractData,
                   reduction: e.target.value,
-                })
-              }
+                });
+              }}
             />
           </div>
           <div>
@@ -338,7 +344,7 @@ const TableContract = () => {
       ),
     },
     {
-      label: "Step 2: Ajouter un contrat",
+      label: "Ajouter un contrat",
       description: (
         <div className="w-full grid grid-cols-2 gap-4 mt-5">
           <div>
@@ -349,8 +355,13 @@ const TableContract = () => {
               placeholder="Montant"
               value={ContractData.montant}
               onChange={(e) => {
-                const res = tarif - e.target.value;
-                ContractData.reste = res;
+                ContractData.reste = tarif - e.target.value;
+                if (e.target.value > tarif) {
+                  message.warning(
+                    "Le montant saisie doit être inférieur au tarif "
+                  );
+                  return;
+                }
                 setContractData({
                   ...ContractData,
                   montant: e.target.value,
@@ -365,7 +376,7 @@ const TableContract = () => {
               disabled={true}
               size="middle"
               placeholder="Le rest actuel"
-              value={ContractData.reste}
+              value={tarif - ContractData.montant}
               onChange={(e) =>
                 setContractData({
                   ...ContractData,
@@ -375,7 +386,7 @@ const TableContract = () => {
             />
           </div>
           <div>
-            <label htmlFor="modeReglement">Mode de Reglement</label>
+            <label htmlFor="modeReglement">Mode de Règlement</label>
             <Select
               id="modeReglement"
               showSearch
@@ -387,8 +398,20 @@ const TableContract = () => {
               }
               options={[
                 {
-                  value: "Especes",
-                  label: "Especes",
+                  value: "Chèques",
+                  label: "Chèques",
+                },
+                {
+                  value: "Espèces",
+                  label: "Espèces",
+                },
+                {
+                  value: "Prélèvements",
+                  label: "Prélèvements",
+                },
+                {
+                  value: "Autre",
+                  label: "Autre",
                 },
               ]}
             />
@@ -407,7 +430,11 @@ const TableContract = () => {
               options={[
                 {
                   value: true,
-                  label: "Entree",
+                  label: "Entrée",
+                },
+                {
+                  value: false,
+                  label: "Sortie",
                 },
               ]}
             />
@@ -416,13 +443,45 @@ const TableContract = () => {
       ),
     },
     {
-      label: "Step 3: Finish",
+      label: "Final",
       description: (
-        <div>
-          <div className="mt-4">
-            <h2>Contract Data</h2>
-            <pre>{JSON.stringify(ContractData, null, 2)}</pre>
-          </div>
+        <div className="mt-4">
+          <Table
+            columns={[
+              {
+                title: "Contract Data",
+                key: "data",
+                render: () => (
+                  <div>
+                    {Object.entries(ContractData).map(([key, value]) => {
+                      if (
+                        key === "id_client" ||
+                        key === "id_abn" ||
+                        key === "id_etablissement" ||
+                        key === "Type" ||
+                        key === "description" ||
+                        key === "id_admin"
+                      )
+                        return null;
+                      return (
+                        <div key={key} style={{ display: "flex" }}>
+                          <span
+                            style={{ fontWeight: "bold", marginRight: "8px" }}
+                          >
+                            {toCapitalize(key.replaceAll("_"," "))}:
+                          </span>
+                          <span>{value}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ),
+              },
+            ]}
+            dataSource={[ContractData]}
+            pagination={false}
+            rowKey="id_contrat" // Assuming 'id_contrat' is a unique identifier in your data
+          />
         </div>
       ),
     },
@@ -639,7 +698,7 @@ const TableContract = () => {
                           optional={
                             index === 2 ? (
                               <Typography variant="caption">
-                                Last step
+                                Dernière étape
                               </Typography>
                             ) : null
                           }
@@ -656,8 +715,8 @@ const TableContract = () => {
                                 sx={{ mt: 1, mr: 1 }}
                               >
                                 {index === steps.length - 1
-                                  ? "Finish"
-                                  : "Continue"}
+                                  ? "Terminer"
+                                  : "Continuer"}
                               </Button>
                               <Button
                                 className="ml-3 mt-3"
@@ -665,7 +724,7 @@ const TableContract = () => {
                                 onClick={handleBack}
                                 sx={{ mt: 1, mr: 1, ml: 2 }}
                               >
-                                Back
+                                Retour
                               </Button>
                             </div>
                           </Box>
@@ -675,11 +734,9 @@ const TableContract = () => {
                   </Stepper>
                   {activeStep === steps.length && (
                     <Paper square elevation={0} sx={{ p: 3 }}>
-                      <Typography>
-                        All steps completed - you&apos;re finished
-                      </Typography>
+                      <Typography>Toutes les étapes sont terminées</Typography>
                       <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-                        Reset
+                        Réinitialiser
                       </Button>
                     </Paper>
                   )}

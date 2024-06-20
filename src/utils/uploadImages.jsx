@@ -24,7 +24,10 @@ const UploadImage = () => {
     }
     setPreviewImage(file.url || file.preview);
     setPreviewOpen(true);
-    setPreviewTitle(file.name || (file.url ? file.url.substring(file.url.lastIndexOf("/") + 1) : ''));
+    setPreviewTitle(
+      file.name ||
+        (file.url ? file.url.substring(file.url.lastIndexOf("/") + 1) : "")
+    );
   };
 
   const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
@@ -37,17 +40,25 @@ const UploadImage = () => {
     }
 
     const file = fileList[0]; // Only upload the first file
+    // const formData = new FormData();
     const formData = new FormData();
-    formData.append("uploadedFile", file.originFileObj);
-    console.log('====================================');
-    console.log(formData);
-    console.log('====================================');
+    formData.append("uploadedFile", {
+      uri:  file.originFileObj.uri,
+      type:  file.originFileObj.type,
+      name:  file.originFileObj.fileName || "image.jpg",
+    });
+    formData.append("path", "client/"); // Ass
+    console.log(file.originFileObj);
+    // formData.append("uploadedFile", file.originFileObj);
     try {
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/saveImage/",
         {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: { formData },
         }
       );
 
@@ -85,13 +96,13 @@ const UploadImage = () => {
       >
         {fileList.length >= 1 ? null : uploadButton}
       </Upload>
-      {/* <Button
+      <Button
         className="cursor-pointer"
         onClick={handleUploadImage}
         style={{ marginTop: 8 }}
       >
         Upload
-      </Button> */}
+      </Button>
       <Modal
         open={previewOpen}
         title={previewTitle}

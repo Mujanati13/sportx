@@ -69,14 +69,14 @@ const TablePeriod = () => {
       if (response.ok) {
         const res = await response.json();
         if (res.msg == "Added Successfully!!e") {
-          message.success("Period added successfully");
+          message.success("Période ajoutée avec succès");
           setAdd(Math.random() * 1000);
           setClientData({
             PeriodeSalaire: "",
           });
           onCloseR();
         } else {
-          message.warning(res.msg);
+          message.warning("Deja un Période créer avec cette attribut");
           console.log(res);
         }
       } else {
@@ -313,8 +313,8 @@ const TablePeriod = () => {
           <div className="flex items-center space-x-6">
             {selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Delete the Period"
-                description="Are you sure to delete this Period?"
+                title="Supprimer la période"
+                description="Êtes-vous sûr de supprimer cette période ?"
                 onConfirm={confirm}
                 onCancel={cancel}
                 okText="Yes"
@@ -359,6 +359,7 @@ const TablePeriod = () => {
                         </label>
                         <Select
                           id="ville"
+                          value={attribut.years}
                           showSearch
                           placeholder="Année"
                           className="w-full"
@@ -402,6 +403,7 @@ const TablePeriod = () => {
                           * Mois{" "}
                         </label>
                         <Select
+                          value={attribut.month}
                           id="mois"
                           showSearch
                           placeholder="Mois"
@@ -412,13 +414,6 @@ const TablePeriod = () => {
                           }
                           filterOption={(input, option) =>
                             (option?.label ?? "").startsWith(input)
-                          }
-                          filterSort={(optionA, optionB) =>
-                            (optionA?.label ?? "")
-                              .toLowerCase()
-                              .localeCompare(
-                                (optionB?.label ?? "").toLowerCase()
-                              )
                           }
                           options={[
                             { value: "Janvier", label: "Janvier" },

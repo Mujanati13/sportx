@@ -54,7 +54,7 @@ const items = [
       },
       {
         key: "14",
-        label: "Transications",
+        label: "Transactions",
         icon: <CreditCardOutlined />,
       },
       {

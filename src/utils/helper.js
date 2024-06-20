@@ -1,3 +1,5 @@
+import { message } from "antd";
+
 export const limitText = (text, maxLength) => {
   if (text.length <= maxLength) {
     return text;
@@ -44,9 +46,8 @@ export function addMonths(duration) {
   return formattedDate;
 }
 
-
 export function formatDateToYearMonthDay(date) {
-  date = new Date(date)
+  date = new Date(date);
   // Extract the year, month, and day from the date
   const year = date.getFullYear();
   let month = date.getMonth() + 1; // Months are zero-based
@@ -61,13 +62,36 @@ export function validateEmail(email) {
   return emailPattern.test(email);
 }
 
+export const toCapitalize = (str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export function isEighteenYearsApart(startDate, endDate) {
+  // Convert the input dates to Date objects if they are not already
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Check if both dates are valid
+  if (isNaN(start) || isNaN(end)) {
+    message.warning("Invalid date(s) provided.");
+  }
+
+  // Calculate the difference in years
+  const differenceInYears = end.getFullYear() - start.getFullYear();
+
+  // Check if the difference is exactly 18 years
+  if (differenceInYears >= 18) {
+    return true;
+  }
+
+  return false;
+}
 
 export function validateMoroccanPhoneNumber(phoneNumber) {
   // Regular expression for validating a Moroccan phone number
   const phonePattern = /^(?:\+212|0)([ \-]?)(([5-9]\d{8}))$/;
   return phonePattern.test(phoneNumber);
 }
-
 
 export function removeDuplicateEmployees(data) {
   // Create a Set to store unique id_employe values
@@ -81,7 +105,7 @@ export function removeDuplicateEmployees(data) {
     }
     return false;
   });
-  
+
   return filteredData;
 }
 
@@ -96,15 +120,14 @@ export function getTimeFromISOString(isoString) {
   return `${hours}:${formattedMinutes}`;
 }
 
-
 export function convertToDateTime(obj) {
   const parseTime = (timeStr) => {
-    const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
     return { hours, minutes, seconds };
   };
 
   const parseDate = (dateStr) => {
-    const [year, month, day] = dateStr.split('-').map(Number);
+    const [year, month, day] = dateStr.split("-").map(Number);
     return { year, month: month - 1, day }; // month - 1 because Date month is zero-indexed
   };
 
@@ -112,32 +135,54 @@ export function convertToDateTime(obj) {
   const startTime = parseTime(obj.heure_debut);
   const endTime = parseTime(obj.heure_fin);
 
-  const startDate = new Date(year, month, day, startTime.hours, startTime.minutes, startTime.seconds);
-  const endDate = new Date(year, month, day, endTime.hours, endTime.minutes, endTime.seconds);
+  const startDate = new Date(
+    year,
+    month,
+    day,
+    startTime.hours,
+    startTime.minutes,
+    startTime.seconds
+  );
+  const endDate = new Date(
+    year,
+    month,
+    day,
+    endTime.hours,
+    endTime.minutes,
+    endTime.seconds
+  );
 
   return {
     ...obj,
     startDate,
-    endDate
+    endDate,
   };
 }
 
 export function getTimeInHHMM(dateString) {
   const startTime = new Date(dateString);
-  const hours = startTime.getHours().toString().padStart(2, '0');
-  const minutes = startTime.getMinutes().toString().padStart(2, '0');
+  const hours = startTime.getHours().toString().padStart(2, "0");
+  const minutes = startTime.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 }
 
 export function getDayNameInFrench(date) {
-  const daysInFrench = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+  const daysInFrench = [
+    "Dimanche",
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+  ];
   const dayIndex = new Date(date).getDay();
-  return {jour: daysInFrench[dayIndex] , index : dayIndex};
+  return { jour: daysInFrench[dayIndex], index: dayIndex };
 }
 
 export const getCurrentTime = () => {
   const date = new Date();
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 };

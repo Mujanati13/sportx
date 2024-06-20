@@ -7,15 +7,15 @@ import {
   Form,
   Select,
   message,
-  Popconfirm,
   Button,
   Drawer,
   Space,
+  
 } from "antd";
 import {
   SearchOutlined,
   UserAddOutlined,
-  DeleteOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import {
   formatDateToYearMonthDay,
@@ -38,6 +38,7 @@ const TableTransication = () => {
   const [clients, setClients] = useState([]);
   const [idClient, setIdClient] = useState([]);
   const [ContractClient, setContractClient] = useState([]);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [attribut, Setattribut] = useState({
     years: "",
     month: "",
@@ -58,6 +59,28 @@ const TableTransication = () => {
     Reste: null,
     rest_pre: null,
   });
+
+  const TransactionDetailsModal = ({ visible, onClose, transaction }) => {
+    return (
+      <Modal
+        visible={visible}
+        onCancel={onClose}
+        footer={null}
+        title="Transaction Details"
+      >
+        <div>
+          <p>Client: {transaction?.client}</p>
+          <p>Date: {formatDateToYearMonthDay(transaction?.date)}</p>
+          <p>Type: {transaction?.Type ? "Entrée" : "Sortie"}</p>
+          <p>Montant: {transaction?.montant}</p>
+          <p>Mode de règlement: {transaction?.Mode_reglement}</p>
+          <p>Description: {transaction?.description}</p>
+          <p>Reste: {transaction?.Reste}</p>
+          {/* Add more transaction details as needed */}
+        </div>
+      </Modal>
+    );
+  };
 
   useEffect(() => {
     const fecthConn = async () => {
@@ -165,7 +188,8 @@ const TableTransication = () => {
 
   const onCloseR = () => {
     setOpen1(false);
-    setClientData({ date: getCurrentDate(),
+    setClientData({
+      date: getCurrentDate(),
       Type: null,
       montant: null,
       Mode_reglement: "",
@@ -176,7 +200,8 @@ const TableTransication = () => {
       image: "",
       admin: localStorage.getItem("data")[0].login,
       Reste: null,
-      rest_pre: null,})
+      rest_pre: null,
+    });
   };
 
   // Function to handle form submission in the room drawer
@@ -382,6 +407,14 @@ const TableTransication = () => {
 
   return (
     <div className="w-full p-2">
+      <TransactionDetailsModal
+        visible={isModalVisible}
+        onClose={() => {
+          setIsModalVisible(false);
+          setSelectedTransaction(null);
+        }}
+        transaction={selectedTransaction}
+      />
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -393,17 +426,16 @@ const TableTransication = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length >= 1 ? (
-              <Popconfirm
-                title="Supprimer la transaction"
-                description="Êtes-vous sûr de supprimer cette transaction ?"
-                onConfirm={confirm}
-                onCancel={cancel}
-                okText="Yes"
-                cancelText="No"
-              >
-                <DeleteOutlined className="cursor-pointer" />{" "}
-              </Popconfirm>
+            {selectedRowKeys.length == 1 ? (
+              <EyeOutlined
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  setSelectedTransaction(
+                    data.find((item) => item.key === selectedRowKeys[0])
+                  );
+                  setIsModalVisible(true);
+                }}
+              />
             ) : (
               ""
             )}
@@ -671,7 +703,7 @@ const TableTransication = () => {
         dataSource={filteredData}
         rowSelection={rowSelection}
       />
-      <Modal
+      {/* <Modal
         title="Edit Coach"
         visible={isModalVisible}
         onOk={handleModalSubmit}
@@ -695,7 +727,7 @@ const TableTransication = () => {
             </Form.Item>
           </Form>
         </div>
-      </Modal>
+      </Modal> */}
     </div>
   );
 };

@@ -124,6 +124,7 @@ export const TableReservation = () => {
         );
         const data = await response.json();
         console.log(data);
+        data.data.length == 0 ? message.warning("il n'y a pas de séance") : "";
         setSeance(data.data);
       } catch (error) {
         console.error("Error fetching seance:", error);
@@ -168,7 +169,7 @@ export const TableReservation = () => {
       if (response.ok) {
         const res = await response.json();
         if (res.msg === "Added Successfully!!") {
-          message.success("Reservation added successfully");
+          message.success("Réservation ajoutée avec succès");
           setAdd(Math.random() * 1000);
           onCloseR();
         } else {
@@ -192,6 +193,15 @@ export const TableReservation = () => {
   const onCloseR = () => {
     setOpen1(false);
     setSelectedSeance([]);
+    setReservationData({
+      id_client: null,
+      id_seance: null,
+      date_operation: getCurrentDate(),
+      date_presence: null,
+      status: null,
+      presence: null,
+      motif_annulation: null,
+    });
   };
 
   const handleReservationSubmit = () => {
@@ -322,7 +332,7 @@ export const TableReservation = () => {
                               ...ReservationData,
                               cour: value,
                             });
-                            fetchSeance(ReservationData.client, value);
+                            fetchSeance(ReservationData.id_client, value);
                           }}
                           placeholder="Cours"
                           optionFilterProp="children"
@@ -354,9 +364,6 @@ export const TableReservation = () => {
                             (seance) => seance.id_seance === value
                           );
                           setSelectedSeance(selectedSeance);
-                          console.log("====================================");
-                          console.log(selectedSeance);
-                          console.log("====================================");
                           setReservationData({
                             ...ReservationData,
                             id_seance: value,
@@ -410,9 +417,6 @@ export const TableReservation = () => {
           localizer={localizer}
           onDoubleClickEvent={(e) => {
             setIsModalVisible(true);
-            console.log("====================================");
-            console.log(e);
-            console.log("====================================");
             fetchClientParSeance(e);
             SetSeancInfos(e);
           }}

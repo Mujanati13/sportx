@@ -1,5 +1,5 @@
 import { getCurrentDate } from "../helper";
-
+import download from "downloadjs";
 export function handlePrintContract(
   nom,
   prenom,

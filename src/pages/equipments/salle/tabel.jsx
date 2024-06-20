@@ -21,6 +21,7 @@ import {
   EditOutlined,
   BorderOuterOutlined,
   PlusOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 
 const TableSalle = () => {
@@ -48,6 +49,8 @@ const TableSalle = () => {
   const [add1, setAdd1] = useState(false);
   const [categories, setcategories] = useState([]);
   const [contarctStaff, setcontarctStaff] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
 
   // State for room related data
   const [ClientData, setClientData] = useState({
@@ -228,6 +231,11 @@ const TableSalle = () => {
     });
   };
 
+  const handleViewDetails = (room) => {
+    setSelectedRoom(room);
+    setIsViewModalVisible(true);
+  };
+
   // Function to handle form submission in the room drawer
   const handleRoomSubmit = () => {
     addClient();
@@ -259,7 +267,12 @@ const TableSalle = () => {
         setFilteredData(processedData);
 
         // Generate columns based on the desired keys
-        const desiredKeys = ["nom_salle", "category", "capacity"];
+        const desiredKeys = [
+          "nom_salle",
+          "category",
+          "capacity",
+          "",
+        ];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
           dataIndex: key,
@@ -267,8 +280,19 @@ const TableSalle = () => {
           render: (text, record) => {
             if (key === "description") {
               return <div>{text}</div>;
-            } else if (key === "date_inscription") {
+            }
+            if (key === "date_inscription") {
               return <Tag>{text}</Tag>;
+            }
+            if (key === "") {
+              return (
+                <div>
+                  <EyeOutlined
+                    onClick={() => handleViewDetails(record)}
+                    style={{ cursor: "pointer" }}
+                  />
+                </div>
+              );
             }
             return text;
           },
@@ -605,6 +629,20 @@ const TableSalle = () => {
 
   return (
     <div className="w-full p-2">
+      <Modal
+        title={`Details of ${selectedRoom?.nom_salle}`}
+        visible={isViewModalVisible}
+        onCancel={() => {
+          setIsViewModalVisible(false);
+          setSelectedRoom(null);
+        }}
+        footer={null}
+      >
+        {/* Display the details of the selected room here */}
+        <p>Category: {selectedRoom?.category}</p>
+        <p>Capacity: {selectedRoom?.capacity}</p>
+        {/* Add other details as needed */}
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -626,12 +664,12 @@ const TableSalle = () => {
             )}
             {selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Delete Contrat salle"
-                description="Are you sure to delete this salle"
+                title="Supprimer la salle"
+                description="Êtes-vous sûr de supprimer cette salle"
                 onConfirm={confirm}
                 onCancel={cancel}
-                okText="Yes"
-                cancelText="No"
+                okText="Oui"
+                cancelText="Non"
               >
                 <DeleteOutlined className="cursor-pointer" />{" "}
               </Popconfirm>
