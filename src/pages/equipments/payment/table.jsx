@@ -469,7 +469,7 @@ const TablePayemnt = () => {
         const jsonData = await response.json();
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_contrat || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id || index, // Assuming each item has a unique id, otherwise use index
         }));
         console.log(processedData);
         setData(processedData);
