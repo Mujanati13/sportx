@@ -663,7 +663,8 @@ const TableContract = () => {
           </div>
           <div className="flex items-center space-x-6">
             {selectedRowKeys.length === 1 ? "" : ""}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Delete the Clinet"
                 description="Are you sure to delete this Clinet?"
@@ -677,7 +678,8 @@ const TableContract = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length >= 1 ? (
               <PrinterOutlined onClick={handlePrint} disabled={true} />
             ) : (
               ""
@@ -688,13 +690,15 @@ const TableContract = () => {
         <div>
           <>
             <div className="flex items-center space-x-3">
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<FileAddOutlined />}
-              >
-                Ajouter Contrat
-              </Button>
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<FileAddOutlined />}
+                >
+                  Ajouter Contrat
+                </Button>
+              )}
             </div>
             <Drawer
               title="Saisir un nouveau Contrat"

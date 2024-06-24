@@ -658,7 +658,7 @@ const TableAbonnement = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -666,7 +666,7 @@ const TableAbonnement = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer l'abonnement"
                 description="Êtes-vous sûr de supprimer cet abonnement"
@@ -680,7 +680,7 @@ const TableAbonnement = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
               <div className="flex items-center space-x-4">
                 <EyeOutlined
                   style={{ cursor: "pointer" }}
@@ -701,20 +701,20 @@ const TableAbonnement = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            <Button
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
               type="default"
               onClick={showDrawerR}
               icon={<UserAddOutlined />}
             >
               Ajout abonnement
-            </Button>
-            <Button
+            </Button>}
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
               type="default"
               onClick={showDrawerC}
               icon={<BorderOuterOutlined />}
             >
               Type d'abonnement
-            </Button>
+            </Button>}
           </div>
           <Drawer
             title="Saisir un nouveau abonnement"

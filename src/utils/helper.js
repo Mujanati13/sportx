@@ -89,7 +89,7 @@ export function isEighteenYearsApart(startDate, endDate) {
 
 export function validateMoroccanPhoneNumber(phoneNumber) {
   // Regular expression for validating a Moroccan phone number
-  const phonePattern = /^(?:\+212|0)([ \-]?)(([5-9]\d{8}))$/;
+  const phonePattern = /^(?:\+212|0)([ \-]?)(([5-7]\d{8}))$/;
   return phonePattern.test(phoneNumber);
 }
 

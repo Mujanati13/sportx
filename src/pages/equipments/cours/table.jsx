@@ -398,7 +398,7 @@ const TableCours = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -406,7 +406,7 @@ const TableCours = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Delete Contrat Staff"
                 description="Are you sure to delete this cour"
@@ -425,13 +425,13 @@ const TableCours = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            <Button
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
               type="default"
               onClick={showDrawerR}
               icon={<UserAddOutlined />}
             >
               Ajoute Cours
-            </Button>
+            </Button>}
           </div>
           <Drawer
             title="Saisir un nouveau Cours"

@@ -322,7 +322,7 @@ const TablePeriod = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer la période"
                 description="Êtes-vous sûr de supprimer cette période ?"
@@ -341,13 +341,13 @@ const TablePeriod = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            <Button
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
               type="default"
               onClick={showDrawerR}
               icon={<UserAddOutlined />}
             >
               Ajoute Priod
-            </Button>
+            </Button>}
           </div>
           <Drawer
             title="Saisir un nouveau Period"

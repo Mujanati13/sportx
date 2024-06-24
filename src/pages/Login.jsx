@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { UserOutlined, KeyOutlined } from "@ant-design/icons";
-import { Button, Input, Watermark, message } from "antd";
+import { Button, Input, Watermark, message, Segmented } from "antd";
 import { Endpoint } from "../utils/endPoint";
 import logoSportx from "../assets/logo/Logo-sportx.png";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,22 +9,26 @@ export default function Login() {
   const navigate = useNavigate();
   const [isLoading, setIsloading] = useState(false);
   const [getPassword, setPassword] = useState("");
-  const [emailError, setEmailError] = useState();
+  const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [loginError, setLoginError] = useState(null); // Track login error message
-  const [state, setState] = useState(true);
-  const [getEmail, setEmail] = useState(localStorage.getItem("email") || "");
+  const [userType, setUserType] = useState("admin"); // Track user type (admin or coach)
+  const [getEmail, setEmail] = useState(
+    localStorage.getItem(`${userType}email`) || ""
+  );
 
   function handleEmail(e) {
     setEmail(e.target.value);
     setEmailError(false); // Reset error state
     setLoginError(null); // Reset login error message
   }
+
   function handlePassword(e) {
     setPassword(e.target.value);
     setPasswordError(false); // Reset error state
     setLoginError(null); // Reset login error message
   }
+
   async function handleLogin() {
     if (!getEmail || !getPassword) {
       if (!getEmail) {
@@ -33,14 +37,16 @@ export default function Login() {
       if (!getPassword) {
         setPasswordError(true); // Set error state for password
       }
-      message.warning("Veuillez remplir les champs obligatoires.");
+      message.warning("Please fill in all required fields.");
       return;
     }
 
     setIsloading(true);
 
     try {
-      const response = await fetch(Endpoint() + "/api/loginAdmin", {
+      const endpoint =
+        userType === "admin" ? "/api/loginAdmin" : "/api/loginCoach";
+      const response = await fetch(Endpoint() + endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,37 +56,32 @@ export default function Login() {
 
       if (response.ok) {
         const { token, data } = await response.json();
-        localStorage.setItem("jwtToken", token);
-        localStorage.setItem("email", getEmail);
-        localStorage.setItem("data", JSON.stringify(data));
-        window.location.href = "/dashboard/";
+        if (data) {
+          localStorage.setItem("jwtToken", token);
+          localStorage.setItem(`${userType}email`, getEmail);
+          localStorage.setItem("data", JSON.stringify(data));
+          navigate("/dashboard");
+        } else {
+          message.error("Login failed. Please check your credentials.");
+        }
       } else {
-        message.error(
-          "Échec de la connexion. Veuillez vérifier vos identifiants"
-        );
+        message.error("Login failed. Please check your credentials.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      message.error("Une erreur s'est produite lors de la connexion");
+      message.error("An error occurred during login.");
     } finally {
       setIsloading(false);
     }
   }
 
   useEffect(() => {
-    const email = localStorage.getItem("email");
-    setEmail(email);
-    const handleLogout = async () => {
-      const token = await localStorage.getItem("jwtToken");
-      if (token.length > 1) {
-        navigate("/dashboard");
-      }
-    };
-    handleLogout();
-  }, []);
+    const email = localStorage.getItem(`${userType}email`);
+    setEmail(email || "");
+  }, [userType]);
 
-  return state ? (
-    <Watermark content="">
+  return (
+    <div className="w-full h-screen">
       <div className="flex justify-center mt-10">
         <img
           height={60}
@@ -91,6 +92,22 @@ export default function Login() {
         />
       </div>
       <div className="w-80 h-60 m-auto mt-1 flex flex-col justify-center items-center space-y-5">
+        <Segmented
+          options={[
+            {
+              label: "Admin",
+              value: "admin",
+              icon: <UserOutlined />,
+            },
+            {
+              label: "Coach",
+              value: "coach",
+              icon: <UserOutlined />,
+            },
+          ]}
+          value={userType}
+          onChange={(value) => setUserType(value)}
+        />
         <Input
           style={
             (emailError || loginError) && !getEmail
@@ -106,11 +123,11 @@ export default function Login() {
           }}
           size="large"
           value={getEmail}
-          placeholder="Login"
+          placeholder="Email"
           prefix={<UserOutlined />}
         />
 
-        <Input
+        <Input.Password
           style={passwordError || loginError ? { borderColor: "red" } : null}
           required
           onChange={handlePassword}
@@ -125,18 +142,16 @@ export default function Login() {
           </Button>
         ) : (
           <Button className="font-medium w-80" onClick={handleLogin}>
-            Connecte
+            Login
           </Button>
         )}
         {loginError && <div className="text-red-500">{loginError}</div>}
       </div>
       <Link to="/forget-password">
         <div className="text-blue-400 underline underline-offset-1 text-center">
-          Forget Password
+          Forgot Password?
         </div>
       </Link>
-    </Watermark>
-  ) : (
-    (window.location.href = "/dashboard/profile")
+    </div>
   );
 }

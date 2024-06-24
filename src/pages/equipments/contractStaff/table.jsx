@@ -109,7 +109,7 @@ const TableContractStaff = () => {
         Client.date_naissance,
         ContractData.date_debut,
         ContractData.type_contrat,
-        ContractData.salaire,
+        ContractData.salaire
       );
     });
   };
@@ -146,13 +146,15 @@ const TableContractStaff = () => {
 
   // Function to add a new chamber
   const addClient = async () => {
-    const check = contarctStaff.filter((staff)=>staff.id_employe == ClientData.id_employe)
+    const check = contarctStaff.filter(
+      (staff) => staff.id_employe == ClientData.id_employe
+    );
     console.log(check);
-    if(check.length>0){
+    if (check.length > 0) {
       message.warning("Ce membre du personnel a déjà un contrat.");
-      return false
+      return false;
     }
-    // check in contra staf  
+    // check in contra staf
     try {
       // Check if the form is valid before submitting
       if (!isRoomFormValid()) {
@@ -439,7 +441,8 @@ const TableContractStaff = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Delete Contrat Staff"
                 description="Are you sure to delete Contrat Staff"
@@ -453,7 +456,8 @@ const TableContractStaff = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length == 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length == 1 ? (
               <PrinterOutlined onClick={handlePrint} disabled={true} />
             ) : (
               ""
@@ -463,13 +467,15 @@ const TableContractStaff = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            <Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajoute Contrat Staff
-            </Button>
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajoute Contrat Staff
+              </Button>
+            )}
           </div>
           <Drawer
             title="Saisir un nouveau Contrat Staff"

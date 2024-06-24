@@ -13,6 +13,7 @@ import {
   ContactsOutlined,
   BookOutlined,
   FieldTimeOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import Etablisiment from "../pages/screens/etablisimment";
@@ -31,15 +32,17 @@ import Abonnement from "../pages/screens/abonnement";
 import Transication from "../pages/screens/transication";
 import Notification from "../pages/screens/notification";
 import Dashboard from "../pages/screens/dashboard";
+import { useNavigate } from "react-router-dom";
+
 const items = [
   {
     key: "1",
-    label: "Gestion D'Etabblisiment",
+    label: "Gestion D'Établissement",
     icon: <HomeOutlined />,
     children: [
       {
         key: "11",
-        label: "Etabblisiment",
+        label: "Établissement",
         icon: <HomeOutlined />,
       },
       {
@@ -168,6 +171,12 @@ const items = [
       },
     ],
   },
+  {
+    key: "40",
+    label: "Logout",
+    icon: <LogoutOutlined />,
+    style: { marginTop: "auto" }, // This will push the logout button to the bottom
+  },
 ];
 
 const getLevelKeys = (items1) => {
@@ -190,6 +199,7 @@ const levelKeys = getLevelKeys(items);
 const MenuPrime = () => {
   const [selectedComponent, setSelectedComponent] = useState("12");
   const [stateOpenKeys, setStateOpenKeys] = useState(["1", "12"]);
+  const navigate = useNavigate();
   const onOpenChange = (openKeys) => {
     const currentOpenKey = openKeys.find(
       (key) => stateOpenKeys.indexOf(key) === -1
@@ -214,10 +224,6 @@ const MenuPrime = () => {
 
   const onClick = (e) => {
     if (e.key === "16") {
-      // Logout logic
-      localStorage.removeItem("jwtToken");
-      navigate("/");
-      console.log("Logging out");
     } else {
       setSelectedComponent(e.key);
     }
@@ -281,12 +287,12 @@ const MenuPrime = () => {
         items={[
           {
             key: "1",
-            label: "Gestion D'Etabblisiment",
+            label: "Gestion D'Etablissement",
             icon: <HomeOutlined />,
             children: [
               {
                 key: "11",
-                label: "Etabblisiment",
+                label: "Etablissement",
                 icon: <HomeOutlined />,
               },
               {
@@ -301,7 +307,7 @@ const MenuPrime = () => {
               },
               {
                 key: "14",
-                label: "Transications",
+                label: "Transactions",
                 icon: <CreditCardOutlined />,
               },
               {
@@ -330,7 +336,7 @@ const MenuPrime = () => {
                 children: [
                   {
                     key: "151",
-                    label: "Seance",
+                    label: "Séance",
                     icon: <ClockCircleOutlined />,
                   },
                   {
@@ -371,7 +377,7 @@ const MenuPrime = () => {
               },
               {
                 key: "23",
-                label: "Reservations",
+                label: "Réservations",
                 icon: <BookOutlined />,
               },
             ],
@@ -388,7 +394,7 @@ const MenuPrime = () => {
               },
               {
                 key: "32",
-                label: "Peroid",
+                label: "Période",
                 icon: <FieldTimeOutlined />,
               },
               {
@@ -414,6 +420,16 @@ const MenuPrime = () => {
                 icon: <ReconciliationOutlined />,
               },
             ],
+          },
+          {
+            key: "40",
+            label: "Logout",
+            icon: <LogoutOutlined />,
+            onClick: () => {
+              localStorage.removeItem("jwtToken");
+              navigate("/");
+              console.log("Logging out");
+            },
           },
         ]}
       />

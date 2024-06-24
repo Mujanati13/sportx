@@ -711,7 +711,7 @@ const TableSeance = () => {
             " "
           )}
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -719,7 +719,7 @@ const TableSeance = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer la séance"
                 description="Êtes-vous sûr de supprimer cette séance ?"
@@ -743,7 +743,7 @@ const TableSeance = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {display ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&display? (
               <Button
                 type="default"
                 onClick={showDrawerR}

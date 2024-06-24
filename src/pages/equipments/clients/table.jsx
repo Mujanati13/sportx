@@ -45,6 +45,10 @@ const TableClient = () => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [imagePath, setimagePath] = useState("");
+  const [formErrors, setFormErrors] = useState({
+    tel: "",
+    mail: "",
+  });
   const [ClientData, setClientData] = useState({
     civilite: "",
     nom_client: "",
@@ -130,36 +134,59 @@ const TableClient = () => {
     </div>
   );
 
-  // Validation function to check if all required fields are filled for the room form
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    setClientData({ ...ClientData, tel: value });
+
+    if (!validateMoroccanPhoneNumber(value)) {
+      setFormErrors((prev) => ({
+        ...prev,
+        tel: "Numéro de téléphone invalide",
+      }));
+    } else {
+      setFormErrors((prev) => ({ ...prev, tel: "" }));
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setClientData({ ...ClientData, mail: value });
+
+    if (!validateEmail(value)) {
+      setFormErrors((prev) => ({ ...prev, mail: "Adresse e-mail invalide" }));
+    } else {
+      setFormErrors((prev) => ({ ...prev, mail: "" }));
+    }
+  };
+
   const isRoomFormValid = () => {
-    return (
-      ClientData.civilite !== "" &&
-      ClientData.nom_client !== "" &&
-      ClientData.prenom_client !== "" &&
-      ClientData.adresse !== "" &&
-      validateMoroccanPhoneNumber(ClientData.tel) &&
-      validateEmail(ClientData.mail) &&
-      ClientData.cin !== "" &&
-      ClientData.ville !== "" &&
-      ClientData.date_naissance !== ""
-    );
+    const errors = {};
+
+    if (ClientData.civilite === "") errors.civilite = true;
+    if (ClientData.nom_client === "") errors.nom_client = true;
+    if (ClientData.prenom_client === "") errors.prenom_client = true;
+    if (ClientData.adresse === "") errors.adresse = true;
+    if (!validateMoroccanPhoneNumber(ClientData.tel)) errors.tel = true;
+    if (!validateEmail(ClientData.mail)) errors.mail = true;
+    if (ClientData.cin === "") errors.cin = true;
+    if (ClientData.ville === "") errors.ville = true;
+    if (ClientData.date_naissance === "") errors.date_naissance = true;
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // Function to add a new chamber
   const addClient = async () => {
     try {
-      // Check if the form is valid before submitting
       if (!isRoomFormValid()) {
-        message.warning("Veuillez remplir tous les champs obligatoires");
-        return;
-      }
-
-      if (
-        !validateEmail(ClientData.mail) ||
-        !validateMoroccanPhoneNumber(ClientData.tel)
-      ) {
+        const firstErrorField = Object.keys(formErrors)[0];
+        const errorElement = document.getElementById(firstErrorField);
+        if (errorElement) {
+          errorElement.focus();
+        }
         message.warning(
-          "Veuillez vérifier votre email ou numéro de téléphone car il a un mauvais format."
+          "Veuillez remplir tous les champs obligatoires correctement"
         );
         return;
       }
@@ -514,7 +541,7 @@ const TableClient = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -522,7 +549,7 @@ const TableClient = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le client"
                 description="Êtes-vous sûr de supprimer ce client ?"
@@ -536,7 +563,7 @@ const TableClient = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <PrinterOutlined disabled={true} />
             ) : (
               ""
@@ -546,13 +573,13 @@ const TableClient = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            <Button
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
               type="default"
               onClick={showDrawerR}
               icon={<UserAddOutlined />}
             >
               Ajoute Client
-            </Button>
+            </Button>}
           </div>
           <Drawer
             title="Saisir un nouveau client"
@@ -578,13 +605,6 @@ const TableClient = () => {
                       >
                         {fileList.length >= 1 ? null : uploadButton}
                       </Upload>
-                      {/* <Button
-                        className="cursor-pointer"
-                        onClick={handleUploadImage}
-                        style={{ marginTop: 8 }}
-                      >
-                        Upload
-                      </Button> */}
                       <Modal
                         open={previewOpen}
                         title={previewTitle}
@@ -614,6 +634,7 @@ const TableClient = () => {
                         placeholder="Civilité"
                         className="w-full"
                         optionFilterProp="children"
+                        status={formErrors.civilite ? "error" : ""}
                         onChange={(value) =>
                           setClientData({ ...ClientData, civilite: value })
                         }
@@ -646,6 +667,9 @@ const TableClient = () => {
                         size="middle"
                         placeholder="Nom"
                         value={ClientData.nom_client}
+                        className={
+                          formErrors.nom_client ? "border-red-500" : ""
+                        }
                         onChange={(e) =>
                           setClientData({
                             ...ClientData,
@@ -666,6 +690,9 @@ const TableClient = () => {
                         size="middle"
                         placeholder="Prénom"
                         value={ClientData.prenom_client}
+                        className={
+                          formErrors.prenom_client ? "border-red-500" : ""
+                        }
                         onChange={(e) =>
                           setClientData({
                             ...ClientData,
@@ -681,6 +708,7 @@ const TableClient = () => {
                       <Input
                         id="adresse"
                         size="middle"
+                        className={formErrors.adresse ? "border-red-500" : ""}
                         placeholder="Adresse"
                         value={ClientData.adresse}
                         onChange={(e) =>
@@ -698,11 +726,10 @@ const TableClient = () => {
                       <Input
                         id="tel"
                         size="middle"
+                        status={formErrors.tel ? "error" : ""}
                         placeholder="Téléphone"
                         value={ClientData.tel}
-                        onChange={(e) =>
-                          setClientData({ ...ClientData, tel: e.target.value })
-                        }
+                        onChange={handlePhoneChange}
                       />
                     </div>
                     <div>
@@ -712,11 +739,11 @@ const TableClient = () => {
                       <Input
                         id="mail"
                         size="middle"
+                        status={formErrors.mail ? "error" : ""}
+                        type="danger"
                         placeholder="Email"
                         value={ClientData.mail}
-                        onChange={(e) =>
-                          setClientData({ ...ClientData, mail: e.target.value })
-                        }
+                        onChange={handleEmailChange}
                       />
                     </div>
                     <div>
@@ -726,6 +753,7 @@ const TableClient = () => {
                       <Input
                         id="password"
                         size="middle"
+                        status={formErrors.password ? "error" : ""}
                         placeholder="Mot de passe"
                         value={ClientData.password}
                         onChange={(e) =>
@@ -742,6 +770,7 @@ const TableClient = () => {
                       </label>
                       <Input
                         id="cin"
+                        className={formErrors.cin ? "border-red-500" : ""}
                         size="middle"
                         placeholder="CIN"
                         value={ClientData.cin}
@@ -759,6 +788,7 @@ const TableClient = () => {
                         showSearch
                         placeholder="Ville"
                         className="w-full"
+                        status={formErrors.ville ? "error" : ""}
                         optionFilterProp="children"
                         onChange={(value) =>
                           setClientData({ ...ClientData, ville: value })
@@ -794,6 +824,11 @@ const TableClient = () => {
                         <Input
                           id="date_naissance"
                           size="middle"
+                          className={
+                            formErrors.date_naissance
+                              ? "border-1 border-red-500"
+                              : ""
+                          }
                           type="date"
                           placeholder="Date de naissance"
                           value={ClientData.date_naissance}
@@ -816,6 +851,9 @@ const TableClient = () => {
                       <Tooltip title="Date d'inscription">
                         <Input
                           id="date_inscription"
+                          className={
+                            formErrors.date_inscription ? "border-red-500" : ""
+                          }
                           size="middle"
                           type="date"
                           placeholder="Date d'inscription"

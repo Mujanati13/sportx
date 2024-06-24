@@ -45,7 +45,11 @@ const TableStaff = () => {
   const [add, setAdd] = useState(false);
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [detailsData, setDetailsData] = useState(null);
-  const [imagePath, setimagePath] = useState("");
+  const [imagePath, setimagePath] = useState("/staff/avatar.png");
+  const [formErrors, setFormErrors] = useState({
+    tel: "",
+    mail: "",
+  });
   const [ClientData, setClientData] = useState({
     civilite: "",
     nom: "",
@@ -134,6 +138,30 @@ const TableStaff = () => {
       <div style={{ marginTop: 8 }}>Upload</div>
     </div>
   );
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    setClientData({ ...ClientData, tel: value });
+
+    if (!validateMoroccanPhoneNumber(value)) {
+      setFormErrors((prev) => ({
+        ...prev,
+        tel: "Numéro de téléphone invalide",
+      }));
+    } else {
+      setFormErrors((prev) => ({ ...prev, tel: "" }));
+    }
+  };
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setClientData({ ...ClientData, mail: value });
+
+    if (!validateEmail(value)) {
+      setFormErrors((prev) => ({ ...prev, mail: "Adresse e-mail invalide" }));
+    } else {
+      setFormErrors((prev) => ({ ...prev, mail: "" }));
+    }
+  };
 
   // Validation function to check if all required fields are filled for the room form
   const isFormValid = () => {
@@ -556,7 +584,7 @@ const TableStaff = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -564,7 +592,7 @@ const TableStaff = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le personnel"
                 description="Êtes-vous sûr de supprimer ce personnel ?"
@@ -588,13 +616,13 @@ const TableStaff = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            <Button
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&& <Button
               type="default"
               onClick={showDrawerR}
               icon={<UserAddOutlined />}
             >
               Ajoute Satff
-            </Button>
+            </Button>}
           </div>
           <Drawer
             title="Saisir un nouveau membre du personnel"
@@ -741,10 +769,9 @@ const TableStaff = () => {
                         id="tel"
                         size="middle"
                         placeholder="Téléphone"
+                        status={formErrors.tel ? "error" : ""}
                         value={ClientData.tel}
-                        onChange={(e) =>
-                          setClientData({ ...ClientData, tel: e.target.value })
-                        }
+                        onChange={handlePhoneChange}
                       />
                     </div>
                     <div>
@@ -756,9 +783,8 @@ const TableStaff = () => {
                         size="middle"
                         placeholder="Email"
                         value={ClientData.mail}
-                        onChange={(e) =>
-                          setClientData({ ...ClientData, mail: e.target.value })
-                        }
+                        status={formErrors.mail ? "error" : ""}
+                        onChange={handleEmailChange}
                       />
                     </div>
                     <div>
@@ -871,7 +897,7 @@ const TableStaff = () => {
                         />
                       </Tooltip>
                     </div>
-                    <div>
+                    {/* <div>
                       <label
                         htmlFor="date_inscription"
                         className="block font-medium"
@@ -894,7 +920,7 @@ const TableStaff = () => {
                           }
                         />
                       </Tooltip>
-                    </div>
+                    </div> */}
                     <div>
                       <label htmlFor="statut" className="block font-medium">
                         *Status

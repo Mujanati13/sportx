@@ -10,6 +10,7 @@ import {
   Popconfirm,
   Tooltip,
   Modal,
+  DatePicker,
 } from "antd";
 import {
   SearchOutlined,
@@ -27,6 +28,7 @@ import StepLabel from "@mui/material/StepLabel";
 import StepContent from "@mui/material/StepContent";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import moment from "moment";
 import { handlePrintPayment } from "../../../utils/printable/payment";
 import { getCurrentDate, getCurrentTime } from "../../../utils/helper";
 import TextArea from "antd/es/input/TextArea";
@@ -343,6 +345,27 @@ const TableNotification = () => {
     setFilteredData1(filtered);
   };
 
+  const generateClientSummary = () => {
+    const selectedClients = filteredData1.filter((client) =>
+      selectedRowKeys.includes(client.key)
+    );
+    const totalSelected = selectedClients.length;
+    const clientNames = selectedClients
+      .map((client) => client.nom_client)
+      .join(", ");
+
+    return (
+      <div>
+        <p>
+          <strong>Nombre total de clients sélectionnés:</strong> {totalSelected}
+        </p>
+        <p>
+          <strong>Clients:</strong> {clientNames}
+        </p>
+      </div>
+    );
+  };
+
   // stepper
   const steps = [
     {
@@ -368,20 +391,21 @@ const TableNotification = () => {
                 setPaymentData({ ...PaymentData, contenu: v.target.value });
               }}
               prefix={<SendOutlined />}
-              placeholder="Sujet"
+              placeholder="Contenu"
             ></TextArea>
           </div>
           <div>
             <div>Date</div>
-            <Input
+            <DatePicker
               onChange={(v) => {
                 setPaymentData({ ...PaymentData, date_envoye: v.target.value });
               }}
               className="w-full"
+              format="DD/MM/YYYY"
               type="date"
-              value={getCurrentDate()}
-              placeholder="Sujet"
-            ></Input>
+              value={moment(getCurrentDate())}
+              disabled={true}
+            ></DatePicker>
           </div>
           <div>
             <div>L'heure</div>
@@ -448,7 +472,22 @@ const TableNotification = () => {
     },
     {
       label: "Envoyer notification",
-      description: <div></div>,
+      description: (
+        <div>
+          <h3>Résumé de la notification</h3>
+          <p>
+            <strong>Sujet:</strong> {PaymentData.sujet}
+          </p>
+          <p>
+            <strong>Contenu:</strong> {PaymentData.contenu}
+          </p>
+          <p>
+            <strong>Date d'envoi:</strong> {PaymentData.date_envoye}
+          </p>
+          <h3>Destinataires</h3>
+          {generateClientSummary()}
+        </div>
+      ),
     },
   ];
 
@@ -635,10 +674,11 @@ const TableNotification = () => {
           </div>
           <div className="flex items-center space-x-6">
             {selectedRowKeys.length === 1 ? "" : ""}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Supprimer le paiement"
-                description="Êtes-vous sûr de supprimer ce paiement ?"
+                title="Supprimer le notification"
+                description="Êtes-vous sûr de supprimer ce notification ?"
                 onConfirm={confirm}
                 onCancel={cancel}
                 okText="Yes"
@@ -649,7 +689,8 @@ const TableNotification = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length == 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length == 1 ? (
               <EyeOutlined
                 style={{ cursor: "pointer" }}
                 onClick={() => {
@@ -662,7 +703,8 @@ const TableNotification = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length == 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length == 1 ? (
               <Tooltip title="dupliquer cette notification">
                 <img
                   className="cursor-pointer"
@@ -686,16 +728,18 @@ const TableNotification = () => {
         <div>
           <>
             <div className="flex items-center space-x-3">
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<FileAddOutlined />}
-              >
-                Ajouter Notification
-              </Button>
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<FileAddOutlined />}
+                >
+                  Ajouter Notification
+                </Button>
+              )}
             </div>
             <Drawer
-              title="Saisir un nouveau notification"
+              title="Saisir une nouvelle notification"
               width={720}
               onClose={onCloseR}
               closeIcon={false}
@@ -713,7 +757,7 @@ const TableNotification = () => {
                           optional={
                             index === 2 ? (
                               <Typography variant="caption">
-                                Last step
+                                Dernière étape
                               </Typography>
                             ) : null
                           }
@@ -730,8 +774,8 @@ const TableNotification = () => {
                                 sx={{ mt: 1, mr: 1 }}
                               >
                                 {index === steps.length - 1
-                                  ? "Finish"
-                                  : "Continue"}
+                                  ? "Terminer"
+                                  : "Continuer"}
                               </Button>
                               <Button
                                 className="ml-3 mt-3"
@@ -739,7 +783,7 @@ const TableNotification = () => {
                                 onClick={handleBack}
                                 sx={{ mt: 1, mr: 1, ml: 2 }}
                               >
-                                Back
+                                Retour
                               </Button>
                             </div>
                           </Box>
@@ -750,10 +794,10 @@ const TableNotification = () => {
                   {activeStep === steps.length && (
                     <Paper square elevation={0} sx={{ p: 3 }}>
                       <Typography>
-                        All steps completed - you&apos;re finished
+                        Toutes les étapes sont terminées - vous avez terminé
                       </Typography>
                       <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-                        Reset
+                        Réinitialiser
                       </Button>
                     </Paper>
                   )}

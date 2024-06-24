@@ -269,13 +269,13 @@ export const TableReservation = () => {
         <div>
           <>
             <div className="flex items-center space-x-3">
-              <Button
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
                 type="default"
                 onClick={showDrawerR}
                 icon={<FileAddOutlined />}
               >
                 Ajouter Réservation
-              </Button>
+              </Button>}
             </div>
             <Drawer
               title="Saisir une nouvelle réservation"

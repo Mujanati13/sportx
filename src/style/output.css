@@ -606,14 +606,6 @@ video {
   margin-top: 1.75rem;
 }
 
-.ml-5 {
-  margin-left: 1.25rem;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
 .block {
   display: block;
 }
@@ -668,6 +660,10 @@ video {
 
 .h-96 {
   height: 24rem;
+}
+
+.h-screen {
+  height: 100vh;
 }
 
 .w-10 {
@@ -855,6 +851,11 @@ video {
 .border-red-50 {
   --tw-border-opacity: 1;
   border-color: rgb(254 242 242 / var(--tw-border-opacity));
+}
+
+.border-red-500 {
+  --tw-border-opacity: 1;
+  border-color: rgb(239 68 68 / var(--tw-border-opacity));
 }
 
 .bg-green-200 {

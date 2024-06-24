@@ -219,7 +219,7 @@ const TableCoach = () => {
 
   const onCloseR = () => {
     setOpen1(false);
-    setFileList([])
+    setFileList([]);
     setClientData({
       civilite: "",
       nom_coach: "",
@@ -366,7 +366,7 @@ const TableCoach = () => {
 
       // Add id_client to the values object
       values.id_coach = editingClient.key;
-      values.password = "";
+      // values.password = "";
       values.date_dentree = editingClient.date_dentree;
       values.ville = parseInt(ville);
 
@@ -472,7 +472,7 @@ const TableCoach = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -480,7 +480,7 @@ const TableCoach = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer coach"
                 description="Êtes-vous sûr de supprimer cet coach?"
@@ -494,7 +494,7 @@ const TableCoach = () => {
             ) : (
               ""
             )}
-            {selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <PrinterOutlined disabled={true} />
             ) : (
               ""
@@ -504,13 +504,13 @@ const TableCoach = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            <Button
+           {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&& <Button
               type="default"
               onClick={showDrawerR}
               icon={<UserAddOutlined />}
             >
               Ajoute coach
-            </Button>
+            </Button>}
           </div>
           <Drawer
             title="Saisir un nouveau coach"
@@ -1021,6 +1021,9 @@ const TableCoach = () => {
             </Form.Item>
             <Form.Item name="date_inscription" label="Date d'inscription">
               <Input type="date" disabled />
+            </Form.Item>
+            <Form.Item name="password" label="Mot de passe">
+              <Input type="text" />
             </Form.Item>
             <Form.Item name="statut" label="Status">
               <Select>

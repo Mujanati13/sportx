@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Space, Table, Tag, Modal, Form, Input, Button } from "antd";
+import { Space, Table, Select, Modal, Form, Input, Button } from "antd";
 import { EyeOutlined, EditOutlined } from "@ant-design/icons";
 
 const TableEtablissement = () => {
@@ -31,7 +31,7 @@ const TableEtablissement = () => {
         // Generate columns based on the desired keys
         const desiredKeys = [
           "nom_etablissement",
-          "ville",
+          "adresse_etablissement",
           "teletablissement",
           "mailetablissement",
           "sitewebetablissement",
@@ -193,14 +193,16 @@ const TableEtablissement = () => {
                 style={{ width: "100%", height: "auto" }}
               />
             </p>
-            <Button
-              className="mt-5"
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={handleEdit}
-            >
-              Modifier
-            </Button>
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+              <Button
+                className="mt-5"
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={handleEdit}
+              >
+                Modifier
+              </Button>
+            )}
           </div>
         )}
         {selectedRecord && editMode && (
@@ -217,7 +219,19 @@ const TableEtablissement = () => {
               <Input />
             </Form.Item>
             <Form.Item name="ville" label="Ville">
-              <Input />
+              <Select>
+                <Select.Option value="1">Fes</Select.Option>
+                <Select.Option value="2">Rabat</Select.Option>
+                <Select.Option value="2">Rabat</Select.Option>
+                <Select.Option value="3">Casablanca</Select.Option>
+                <Select.Option value="4">Marrakech</Select.Option>
+                <Select.Option value="5">Agadir</Select.Option>
+                <Select.Option value="6">Tangier</Select.Option>
+                <Select.Option value="7">Meknes</Select.Option>
+                <Select.Option value="8">Oujda</Select.Option>
+                <Select.Option value="9">Kenitra</Select.Option>
+                <Select.Option value="10">Tetouan</Select.Option>
+              </Select>
             </Form.Item>
             <Form.Item name="teletablissement" label="Téléphone">
               <Input />
@@ -241,7 +255,7 @@ const TableEtablissement = () => {
               <Input />
             </Form.Item>
             <Form.Item name="nb_clients" label="Nombre de Clients">
-              <Input />
+              <Input disabled={true} />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit">

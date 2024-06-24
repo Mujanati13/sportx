@@ -10,7 +10,6 @@ import {
   Button,
   Drawer,
   Space,
-  
 } from "antd";
 import {
   SearchOutlined,
@@ -47,7 +46,7 @@ const TableTransication = () => {
   // State for room related data
   const [ClientData, setClientData] = useState({
     date: getCurrentDate(),
-    Type: null,
+    Type: true,
     montant: null,
     Mode_reglement: "",
     description: "",
@@ -96,8 +95,10 @@ const TableTransication = () => {
           }
         );
         const data = await response.json();
-        if(data.data.length == 0){
-          message.warning("Ce client n'a pas de contrat, veuillez en créer un pour lui")
+        if (data.data.length == 0) {
+          message.warning(
+            "Ce client n'a pas de contrat, veuillez en créer un pour lui"
+          );
         }
         setContractClient(data.data);
       } catch (error) {
@@ -110,10 +111,19 @@ const TableTransication = () => {
   const fetchClients = async () => {
     try {
       const response = await fetch(
-        "https://fithouse.pythonanywhere.com/api/clients/"
+        "https://fithouse.pythonanywhere.com/api/client_contrat/ "
       );
       const data = await response.json();
-      setClients(data.data);
+      const seenClients = new Set();
+      const uniqueData = [];
+
+      data.data.forEach((item) => {
+        if (!seenClients.has(item.id_client)) {
+          seenClients.add(item.id_client);
+          uniqueData.push(item);
+        }
+      });
+      setClients(uniqueData);
     } catch (error) {
       console.error("Error fetching clients:", error);
     }
@@ -158,7 +168,7 @@ const TableTransication = () => {
           setAdd(Math.random() * 1000);
           setClientData({
             date: getCurrentDate(),
-            Type: null,
+            Type: true,
             montant: null,
             Mode_reglement: "",
             description: "",
@@ -193,7 +203,7 @@ const TableTransication = () => {
     setOpen1(false);
     setClientData({
       date: getCurrentDate(),
-      Type: null,
+      Type: true,
       montant: null,
       Mode_reglement: "",
       description: "",
@@ -209,6 +219,10 @@ const TableTransication = () => {
 
   // Function to handle form submission in the room drawer
   const handleRoomSubmit = () => {
+    if (parseFloat(ClientData.montant) > parseFloat(ClientData.Reste)) {
+      message.error("Le montant ne peut pas être supérieur au reste à payer.");
+      return;
+    }
     addClient();
   };
 
@@ -429,7 +443,8 @@ const TableTransication = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {selectedRowKeys.length == 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length == 1 ? (
               <EyeOutlined
                 style={{ cursor: "pointer" }}
                 onClick={() => {
@@ -447,13 +462,15 @@ const TableTransication = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            <Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajoute Transication
-            </Button>
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajoute Transication
+              </Button>
+            )}
           </div>
           <Drawer
             title="Saisir un nouveau transaction"
@@ -496,7 +513,7 @@ const TableTransication = () => {
                         }
                         options={clients.map((cli) => {
                           return {
-                            label: cli.nom_client + " " + cli.nom_client,
+                            label: cli.client + " " + cli.Prenom_client,
                             value: cli.id_client,
                           };
                         })}
@@ -564,14 +581,21 @@ const TableTransication = () => {
                       <Input
                         value={ClientData.montant}
                         onChange={(v) => {
+                          const newMontant = parseFloat(v.target.value);
+                          if (newMontant > parseFloat(ClientData.Reste)) {
+                            message.warning(
+                              "Le montant ne peut pas dépasser le reste à payer."
+                            );
+                            return;
+                          }
                           setClientData({
                             ...ClientData,
                             montant: v.target.value,
                           });
                         }}
-                        placeholder="Le rest Precedant"
+                        placeholder="Montant"
                         type="number"
-                      ></Input>
+                      />
                     </div>
                     <div>
                       <div>Le rest actuel</div>
@@ -667,6 +691,8 @@ const TableTransication = () => {
                             .toLowerCase()
                             .localeCompare((optionB?.label ?? "").toLowerCase())
                         }
+                        defaultValue={true}
+                        defaultOpen={true}
                         options={[
                           {
                             label: "Entree",
